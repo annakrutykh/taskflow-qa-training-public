@@ -145,17 +145,19 @@ http://localhost:8000/docs
 http://localhost:8000/openapi.json
 ```
 
-### Kibana — работа с логами (необязательно)
+### Kibana и Redis — необязательные инструменты
 
 ```
 http://localhost:5601
 ```
 
 Каждый запрос к API пишется в Elasticsearch, Kibana даёт удобный поиск по
-логам (по коду ответа, пользователю, request ID и т.д.). **Это не
-обязательный инструмент** — весь курс можно пройти через Swagger, Postman
-и PostgreSQL. Если хотите попробовать — инструкция и учебные задания в
-`docs/STUDENT_LOG_ANALYSIS.md`.
+логам (по коду ответа, пользователю, request ID и т.д.). Redis, в свою
+очередь, можно открыть напрямую через `redis-cli` и своими глазами
+посмотреть, как работают rate limiting и blacklist токенов после logout.
+**Оба инструмента не обязательны** — весь курс можно пройти через Swagger,
+Postman и PostgreSQL. Если хотите попробовать — инструкция и учебные
+задания по обоим инструментам в `docs/STUDENT_LOG_ANALYSIS.md`.
 
 ---
 
@@ -277,7 +279,7 @@ docker compose down -v
 | `docs/API_SPEC.md` | Целевая спецификация: контракт, роли, коды ошибок, схема БД — используйте как эталон при тестировании |
 | `docs/STUDENT_BUG_REPORTING.md` | Как искать расхождения в поведении API и оформлять багрепорт |
 | `docs/STUDENT_GIT_WORKFLOW.md` | Как работать с git в рамках курса |
-| `docs/STUDENT_LOG_ANALYSIS.md` | Работа с логами через Kibana (необязательно) + учебные задания |
+| `docs/STUDENT_LOG_ANALYSIS.md` | Работа с логами через Kibana и с Redis через redis-cli (необязательно) + учебные задания |
 | Swagger UI (`/docs`) | Интерактивная документация прямо на запущенном сервисе |
 
 ---

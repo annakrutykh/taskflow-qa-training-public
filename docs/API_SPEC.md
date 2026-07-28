@@ -296,4 +296,4 @@ Elasticsearch тестам не нужен (`ELASTICSEARCH_ENABLED=false` по �
   последнего завершённого спринта.
 - `docs/STUDENT_BUG_REPORTING.md` — как искать расхождения с этим документом и оформлять багрепорт.
 - `docs/STUDENT_GIT_WORKFLOW.md` — рекомендуемый процесс работы с git в рамках курса.
-- `docs/STUDENT_LOG_ANALYSIS.md` — работа с логами через Kibana (необязательный инструмент).
+- `docs/STUDENT_LOG_ANALYSIS.md` — работа с логами через Kibana и с Redis через redis-cli (необязательные инструменты).
