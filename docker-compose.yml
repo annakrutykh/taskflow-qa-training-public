@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: taskflow
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: taskflow
+    ports: ["5432:5432"]
+    volumes: [taskflow_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskflow -d taskflow"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.http.ssl.enabled: "false"
+      xpack.ml.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    # Контейнеру нужен запас сверх кучи JVM (off-heap, метаданные, ОС) —
+    # эмпирически с mem_limit: 1g ES работал на 96-98% лимита в простое,
+    # рискуя упасть по OOM при любой нагрузке. 1.2g даёт кучу в 512m ту же,
+    # что просили (512MB-1GB), но с реальным запасом прочности контейнера.
+    mem_limit: 1200m
+    ports: ["9200:9200"]
+    # Без volume — логи учебной сессии, не нужно переживать их между запусками
+    # (раздел "Одна учебная сессия" в задаче на интеграцию ELK).
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    mem_limit: 1g
+    ports: ["5601:5601"]
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://taskflow:taskflow@db:5432/taskflow
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      JWT_SECRET: taskflow-secret
+      TRAINING_DEFECTS: ${TRAINING_DEFECTS:-}
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+volumes:
+  taskflow_data:

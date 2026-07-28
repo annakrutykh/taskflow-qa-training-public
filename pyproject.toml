@@ -1,0 +1,30 @@
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI требует Depends(...)/Query(...) именно в значениях по умолчанию —
+# это не изменяемый дефолт, а маркер для DI-контейнера FastAPI.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "smoke: маленький набор критичных happy-path сценариев (docs/TESTING.md)",
+    "regression: полный набор, включая e2e (по умолчанию и так весь tests/)",
+]
+# Защита от зависших тестов (docs/TESTING.md) — таймаут на тест, а не на
+# весь прогон; thread-метод показывает, какой именно тест завис, вместо
+# того чтобы просто убить процесс.
+timeout = 30
+timeout_method = "thread"

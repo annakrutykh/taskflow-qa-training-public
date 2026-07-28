@@ -1,0 +1,63 @@
+"""Регрессионный набор, обязательный по CLAUDE.md (раздел 10): при
+TRAINING_DEFECTS= (пусто) — как здесь, тестовый процесс не выставляет эту
+переменную — ни один из намеренных дефектов не должен воспроизводиться.
+
+Проверку обратной ветки (флаг включён -> дефект воспроизводится) не
+автоматизируем здесь: app.core.defects.defects читает TRAINING_DEFECTS один
+раз при импорте процесса, так что для другой ветки нужен отдельный процесс
+с иной переменной окружения — это уже проверено вручную в S5 (см.
+docs/internal/KNOWN_DEFECTS.md, раздел D) и остаётся ручной операцией до тех
+пор, пока не появится параметризация тестового процесса по окружению."""
+
+import logging
+
+from tests.conftest import auth_headers, create_project, create_task, register_and_login
+
+
+def test_d01_priority_sort_is_logical_by_default(client):
+    owner = register_and_login(client)
+    project_id = create_project(client, owner["token"])
+    create_task(client, owner["token"], project_id, title="h", priority="HIGH")
+    create_task(client, owner["token"], project_id, title="l", priority="LOW")
+    create_task(client, owner["token"], project_id, title="m", priority="MEDIUM")
+
+    resp = client.get(
+        f"/api/v1/tasks?projectId={project_id}&sort=priority&order=asc",
+        headers=auth_headers(owner["token"]),
+    )
+
+    priorities = [t["priority"] for t in resp.json()["items"]]
+    assert priorities == ["LOW", "MEDIUM", "HIGH"]
+
+
+def test_d02_labels_without_token_is_401_not_403(client):
+    resp = client.get("/api/v1/labels")
+
+    assert resp.status_code == 401
+    assert resp.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_d04_labels_field_present_in_task_response(client):
+    owner = register_and_login(client)
+    project_id = create_project(client, owner["token"])
+    task = create_task(client, owner["token"], project_id)
+
+    resp = client.get(
+        f"/api/v1/tasks/{task['id']}", headers=auth_headers(owner["token"])
+    )
+
+    assert "labels" in resp.json()
+
+
+def test_d17_password_never_appears_in_logs(client, caplog):
+    account = register_and_login(client, password="SuperSecret123!")
+
+    with caplog.at_level(logging.DEBUG):
+        resp = client.post(
+            "/api/v1/auth/login",
+            json={"email": account["email"], "password": "SuperSecret123!"},
+        )
+
+    assert resp.status_code == 200
+    for record in caplog.records:
+        assert "SuperSecret123!" not in record.getMessage()
