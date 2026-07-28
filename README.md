@@ -41,8 +41,8 @@ git clone https://github.com/annakrutykh/taskflow-qa-training-public.git
 cd taskflow-qa-training-public
 ```
 
-> Если преподаватель просил работать по модели Fork — клонируйте свой форк
-> вместо этого адреса, подробнее в `docs/STUDENT_GIT_WORKFLOW.md`.
+> Как получать обновления от преподавателя и куда отправлять найденные
+> дефекты — `docs/STUDENT_GIT_WORKFLOW.md`.
 
 ---
 
