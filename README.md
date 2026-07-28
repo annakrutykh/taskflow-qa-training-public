@@ -37,11 +37,12 @@ git --version
 ## 2. Клонирование проекта
 
 ```bash
-git clone <ссылку-на-репозиторий>
-cd <название-папки-проекта>
+git clone https://github.com/annakrutykh/taskflow-qa-training-public.git
+cd taskflow-qa-training-public
 ```
 
-> Ссылку на репозиторий и точное название папки вам даст преподаватель.
+> Если преподаватель просил работать по модели Fork — клонируйте свой форк
+> вместо этого адреса, подробнее в `docs/STUDENT_GIT_WORKFLOW.md`.
 
 ---
 
