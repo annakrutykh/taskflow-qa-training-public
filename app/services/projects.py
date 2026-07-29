@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
+from app.core.cache import cache_delete, cache_get, cache_set
 from app.core.db_utils import get_active
 from app.core.errors import (
     LastProjectOwnerError,
@@ -13,6 +14,12 @@ from app.core.errors import (
 )
 from app.models import Comment, Project, ProjectMember, ProjectRole, Task, User
 from app.permissions import get_membership, require_project_role
+
+PROJECT_CACHE_TTL_SECONDS = 30
+
+
+def _project_cache_key(project_id: int) -> str:
+    return f"cache:project:{project_id}"
 
 
 def create_project(
@@ -61,12 +68,35 @@ def list_projects(
 def get_project(db: Session, user: User, project_id: int) -> Project:
     """Возвращает проект, если пользователь — участник любой роли или ADMIN.
 
+    Содержимое проекта кэшируется в Redis на PROJECT_CACHE_TTL_SECONDS —
+    оно одинаково для всех, кому вообще разрешено его увидеть, поэтому
+    кэшируется отдельно от проверки прав: она выполняется на каждый вызов
+    независимо от того, откуда взят объект проекта (см. app/core/cache.py).
+
     Бросает: NotFoundError, если проект не найден или доступа нет.
     """
-    project = get_active(db, Project, project_id)
+    cache_key = _project_cache_key(project_id)
+    cached = cache_get(cache_key)
 
-    if not project:
-        raise NotFoundError("Project not found")
+    if cached is not None:
+        project = Project(**cached)
+    else:
+        project = get_active(db, Project, project_id)
+
+        if not project:
+            raise NotFoundError("Project not found")
+
+        cache_set(
+            cache_key,
+            {
+                "id": project.id,
+                "name": project.name,
+                "description": project.description,
+                "status": project.status,
+                "owner_id": project.owner_id,
+            },
+            PROJECT_CACHE_TTL_SECONDS,
+        )
 
     require_project_role(db, project, user, ProjectRole.VIEWER)
 
@@ -95,6 +125,8 @@ def update_project(
 
     db.commit()
     db.refresh(project)
+
+    cache_delete(_project_cache_key(project.id))
 
     return project
 
@@ -141,6 +173,8 @@ def delete_project(db: Session, user: User, project_id: int) -> None:
     )
 
     db.commit()
+
+    cache_delete(_project_cache_key(project.id))
 
 
 def add_member(

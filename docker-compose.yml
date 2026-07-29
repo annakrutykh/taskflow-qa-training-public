@@ -19,6 +19,19 @@ services:
       interval: 2s
       timeout: 3s
       retries: 20
+  redis-commander:
+    # Лёгкий веб-GUI для просмотра ключей Redis — альтернатива redis-cli
+    # для студентов (см. docs/STUDENT_LOG_ANALYSIS.md, раздел 6).
+    # ghcr.io — тот же проект, что rediscommander/redis-commander, но с
+    # мультиарх-сборкой (нужно для Apple Silicon/arm64, у Docker Hub образа
+    # есть только linux/amd64).
+    image: ghcr.io/joeferner/redis-commander:latest
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports: ["8081:8081"]
+    depends_on:
+      redis:
+        condition: service_healthy
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
     environment:

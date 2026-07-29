@@ -113,7 +113,7 @@ docker compose up --build -d
 docker compose ps
 ```
 
-Все сервисы (`api`, `db`, `redis`, `elasticsearch`, `kibana`) должны быть в статусе `Up`
+Все сервисы (`api`, `db`, `redis`, `redis-commander`, `elasticsearch`, `kibana`) должны быть в статусе `Up`
 (или `running`/`healthy`). `elasticsearch`/`kibana` стартуют дольше остальных — дайте им
 1-2 минуты после запуска. Если что-то из них в статусе `Exit`/`Restarting` — смотрите логи:
 
@@ -156,11 +156,13 @@ http://localhost:5601
 
 Каждый запрос к API пишется в Elasticsearch, Kibana даёт удобный поиск по
 логам (по коду ответа, пользователю, request ID и т.д.). Redis, в свою
-очередь, можно открыть напрямую через `redis-cli` и своими глазами
-посмотреть, как работают rate limiting и blacklist токенов после logout.
-**Оба инструмента не обязательны** — весь курс можно пройти через Swagger,
-Postman и PostgreSQL. Если хотите попробовать — инструкция и учебные
-задания по обоим инструментам в `docs/STUDENT_LOG_ANALYSIS.md`.
+очередь, можно открыть напрямую через `redis-cli` или в браузере через
+**Redis Commander** (`http://localhost:8081`) и своими глазами посмотреть,
+как работают rate limiting, blacklist токенов после logout и кэш
+`GET /projects/{id}`. **Все три инструмента не обязательны** — весь курс
+можно пройти через Swagger, Postman и PostgreSQL. Если хотите попробовать —
+инструкция и учебные задания по каждому из них в
+`docs/STUDENT_LOG_ANALYSIS.md`.
 
 ---
 
@@ -282,7 +284,7 @@ docker compose down -v
 | `docs/API_SPEC.md` | Целевая спецификация: контракт, роли, коды ошибок, схема БД — используйте как эталон при тестировании |
 | `docs/STUDENT_BUG_REPORTING.md` | Как искать расхождения в поведении API и оформлять багрепорт |
 | `docs/STUDENT_GIT_WORKFLOW.md` | Как работать с git в рамках курса |
-| `docs/STUDENT_LOG_ANALYSIS.md` | Работа с логами через Kibana и с Redis через redis-cli (необязательно) + учебные задания |
+| `docs/STUDENT_LOG_ANALYSIS.md` | Работа с логами через Kibana и с Redis через redis-cli/Redis Commander (rate limit, blacklist, кэш) — необязательно + учебные задания |
 | Swagger UI (`/docs`) | Интерактивная документация прямо на запущенном сервисе |
 
 ---
@@ -314,12 +316,9 @@ API_DOCUMENTATION.md
 
 В репозитории есть `pytest`/`Makefile`/CI — это защита самого проекта от регрессий,
 не учебный материал. **Вам не нужно их писать или запускать** — весь курс проходится
-через Swagger/Postman/PostgreSQL/Kibana. Если любопытно:
-
-```bash
-make smoke   # быстрый прогон
-make lint    # ruff + black --check
-```
+через Swagger/Postman/PostgreSQL/Kibana. В проекте действительно есть автотесты —
+если куратор или автотестер попросит вас их прогнать, он даст конкретную команду;
+короткая справка, что она делает, — `docs/TESTING.md`.
 
 ### Postman
 

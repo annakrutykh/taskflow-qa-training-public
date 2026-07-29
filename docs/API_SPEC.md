@@ -283,10 +283,9 @@ scope soft delete — удаляются физически, каскад на `
 `docker-compose.yml`, без testcontainers по причинам DooD-сети в этом окружении, см. `tests/conftest.py`),
 `tests/e2e/` (полный пользовательский сценарий).
 
-Три уровня прогона — smoke/integration/regression, что входит и сколько занимает —
-`docs/TESTING.md` (команды `make smoke`/`make integration`/`make regression`).
-Elasticsearch тестам не нужен (`ELASTICSEARCH_ENABLED=false` по умолчанию в
-тестовом окружении).
+Не часть курса (`CLAUDE.md`, раздел 5) — команды запуска, если понадобятся,
+в `docs/TESTING.md`. Elasticsearch тестам не нужен
+(`ELASTICSEARCH_ENABLED=false` по умолчанию в тестовом окружении).
 
 `postman/TaskFlow.postman_collection.json` — ручное/обучающее тестирование всех ручек.
 
