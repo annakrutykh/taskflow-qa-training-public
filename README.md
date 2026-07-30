@@ -196,7 +196,7 @@ http://localhost:3000
 Тестовые учётные записи для входа — раздел 9 ниже. Что тестировать в интерфейсе и как
 устроены роли/права — `docs/WEB_SPEC.md`. С чего начать тестирование и по каким этапам
 двигаться — `docs/STUDENT_WEB_ASSIGNMENTS.md`. Кликабельные макеты экранов и
-дизайн-система: https://claude.ai/code/artifact/9018351a-c077-43f9-a720-ec8da42b9fb3
+дизайн-система: https://annakrutykh.github.io/taskflow-qa-training-public/
 
 ---
 
