@@ -25,6 +25,8 @@
 - Роль и статус (`is_active`) пользователя **не кэшируются в токене** — проверяются в БД на каждый
   запрос чтобы деактивация или смена роли действовали мгновенно, без необходимости
   перевыпускать токен.
+- Пароль **никогда не должен попадать в логи** — ни в открытом, ни в каком-либо
+  ином виде, включая неудачные попытки входа.
 
 ### Правило разделения 401 / 403 / 404
 
@@ -252,7 +254,9 @@ scope soft delete — удаляются физически, каскад на `
 | DELETE | `/tasks/{id}` | участник `MANAGER+` или `ADMIN` | `204`, soft delete, каскад на комментарии | `401`, `403`, `404` |
 
 Параметры `GET /tasks`: `limit, offset, status, priority, assigneeId, projectId, search, sort, order`.
-`sort` ∈ `{createdAt, priority, title, status}`, `order` ∈ `{asc, desc}`.
+`sort` ∈ `{createdAt, priority, title, status}`, `order` ∈ `{asc, desc}`. Сортировка по `priority`
+идёт по **логическому порядку значимости** `LOW → MEDIUM → HIGH` (при `order=asc`), а не по
+алфавиту строки.
 
 `TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), assigneeId (опционально, должен существовать)`.
 `TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
