@@ -22,6 +22,9 @@
 | **DBeaver Community** | Просмотр и редактирование данных в PostgreSQL через графический интерфейс | https://dbeaver.io/download/ |
 | **PyCharm Community** | Редактор для чтения кода API и написания тестов | https://www.jetbrains.com/pycharm/download/ |
 
+**Если вы в России — для скачивания PyCharm с jetbrains.com нужен VPN**, сайт не
+открывается напрямую (Docker/Git/DBeaver это не касается — их сайты доступны без VPN).
+
 После установки Docker Desktop **запустите его и дождитесь**, пока иконка кита в трее/меню
 не покажет, что Docker работает (запущен движок). Все команды `docker compose ...` ниже
 работают только при запущенном Docker Desktop.
