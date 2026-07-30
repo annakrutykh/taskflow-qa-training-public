@@ -134,7 +134,7 @@ class TestUpdateTask:
 
         resp = client.patch(
             f"/api/v1/tasks/{task['id']}",
-            json={"title": "renamed", "priority": "LOW", "rating": 2},
+            json={"title": "renamed", "priority": "LOW"},
             headers=auth_headers(owner["token"]),
         )
 
@@ -142,7 +142,6 @@ class TestUpdateTask:
         body = resp.json()
         assert body["title"] == "renamed"
         assert body["priority"] == "LOW"
-        assert body["rating"] == 2
 
     def test_assignee_without_membership_can_only_change_status(self, client):
         owner = register_and_login(client)
@@ -182,20 +181,6 @@ class TestUpdateTask:
         )
 
         assert resp.status_code == 403
-
-    def test_can_clear_rating_to_null(self, client):
-        owner = register_and_login(client)
-        project_id = create_project(client, owner["token"])
-        task = create_task(client, owner["token"], project_id, rating=5)
-
-        resp = client.patch(
-            f"/api/v1/tasks/{task['id']}",
-            json={"rating": None},
-            headers=auth_headers(owner["token"]),
-        )
-
-        assert resp.status_code == 200
-        assert resp.json()["rating"] is None
 
     def test_manager_can_reassign(self, client):
         owner = register_and_login(client)

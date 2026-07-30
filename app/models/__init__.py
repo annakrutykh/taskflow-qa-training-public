@@ -3,7 +3,6 @@ import enum
 from sqlalchemy import (
     JSON,
     Boolean,
-    CheckConstraint,
     Column,
     DateTime,
     Enum,
@@ -180,13 +179,6 @@ class ProjectMember(Base):
 class Task(Base):
     __tablename__ = "tasks"
 
-    __table_args__ = (
-        CheckConstraint(
-            "rating between 1 and 5",
-            name="rating_1_5",
-        ),
-    )
-
     id = Column(Integer, primary_key=True)
 
     project_id = Column(
@@ -224,8 +216,6 @@ class Task(Base):
         nullable=False,
         index=True,
     )
-
-    rating = Column(Integer)
 
     created_at = Column(
         DateTime(timezone=True),

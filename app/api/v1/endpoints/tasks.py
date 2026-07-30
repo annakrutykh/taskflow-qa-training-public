@@ -50,7 +50,6 @@ def add_task(
         body.title,
         body.description,
         body.priority,
-        body.rating,
         body.assigneeId,
     )
 

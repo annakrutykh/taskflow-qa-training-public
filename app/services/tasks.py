@@ -41,7 +41,6 @@ def create_task(
     title: str,
     description: str | None,
     priority: str,
-    rating: int | None,
     assignee_id: int | None,
 ) -> Task:
     """Создаёт задачу в проекте.
@@ -63,7 +62,6 @@ def create_task(
         title=title,
         description=description,
         priority=priority,
-        rating=rating,
         assignee_id=assignee_id,
     )
 
@@ -127,7 +125,6 @@ def list_tasks(
     sort_fields = {
         "createdAt": Task.created_at,
         "priority": _PRIORITY_SORT_COLUMN,
-        "rating": Task.rating,
         "title": Task.title,
         "status": Task.status,
     }
@@ -173,7 +170,6 @@ def update_task(db: Session, user: User, task_id: int, provided_fields: dict) ->
             "description",
             "status",
             "priority",
-            "rating",
             "assignee_id",
         }
     elif access == TaskAccess.ASSIGNEE:

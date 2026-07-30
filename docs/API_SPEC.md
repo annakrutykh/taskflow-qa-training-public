@@ -65,7 +65,7 @@
 
 Пользователь, назначенный на задачу, но не являющийся участником её проекта, получает урезанный
 доступ: просмотр задачи, смена `status`, комментирование — без прав на `title`/`description`/
-`priority`/`rating`, удаление или управление метками. Не требует членства в проекте.
+`priority`, удаление или управление метками. Не требует членства в проекте.
 
 ### Разрешение доступа к задаче (`app/permissions/projects.py`)
 
@@ -225,11 +225,11 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 | DELETE | `/tasks/{id}` | участник `MANAGER+` или `ADMIN` | `204`, soft delete, каскад на комментарии | `401`, `403`, `404` |
 
 Параметры `GET /tasks`: `limit, offset, status, priority, assigneeId, projectId, search, sort, order`.
-`sort` ∈ `{createdAt, priority, rating, title, status}`, `order` ∈ `{asc, desc}`.
+`sort` ∈ `{createdAt, priority, title, status}`, `order` ∈ `{asc, desc}`.
 
-`TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), rating (1–5, опционально), assigneeId (опционально, должен существовать)`.
-`TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, rating, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
-`TaskResponse`: `id, projectId, assigneeId, title, description, status, priority, rating, labels: LabelResponse[]`.
+`TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), assigneeId (опционально, должен существовать)`.
+`TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
+`TaskResponse`: `id, projectId, assigneeId, title, description, status, priority, labels: LabelResponse[]`.
 
 ### 6.5 Comments
 
@@ -272,7 +272,7 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 | `users` | `id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, deleted_at` | `role` — enum `USER/ADMIN`; `email` уникален только среди активных строк (частичный индекс `WHERE deleted_at IS NULL`) |
 | `projects` | `id, name, description, status, owner_id → users.id, created_at, deleted_at` | FK `owner_id` |
 | `project_members` | `project_id → projects.id (cascade), user_id → users.id (cascade), role, created_at` | составной PK `(project_id, user_id)`, индекс на `user_id`. `role` — enum `OWNER/MANAGER/VIEWER` |
-| `tasks` | `id, project_id → projects.id (cascade), assignee_id → users.id, title, description, status, priority, rating, created_at, deleted_at` | `CHECK (rating between 1 and 5)` |
+| `tasks` | `id, project_id → projects.id (cascade), assignee_id → users.id, title, description, status, priority, created_at, deleted_at` | FK на `projects`, `users` |
 | `comments` | `id, task_id → tasks.id (cascade), author_id → users.id, text, created_at, deleted_at` | FK на `tasks`, `users` |
 | `labels` | `id, name (unique)` | вне scope soft delete — удаляется физически |
 | `task_labels` | `task_id → tasks.id (cascade), label_id → labels.id (cascade)` | составной PK, many-to-many `tasks` ↔ `labels` |

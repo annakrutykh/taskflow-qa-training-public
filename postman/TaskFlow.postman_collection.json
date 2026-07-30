@@ -332,7 +332,7 @@
             "url": "{{baseUrl}}/api/v1/tasks",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"projectId\": {{projectId}},\n  \"title\": \"Реализовать авторизацию\",\n  \"description\": \"Добавить JWT авторизацию\",\n  \"priority\": \"HIGH\",\n  \"rating\": 5\n}"
+              "raw": "{\n  \"projectId\": {{projectId}},\n  \"title\": \"Реализовать авторизацию\",\n  \"description\": \"Добавить JWT авторизацию\",\n  \"priority\": \"HIGH\"\n}"
             }
           }
         },
@@ -341,7 +341,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
-            "url": "{{baseUrl}}/api/v1/tasks?status=TODO&priority=HIGH&sort=rating&order=desc"
+            "url": "{{baseUrl}}/api/v1/tasks?status=TODO&priority=HIGH&sort=createdAt&order=desc"
           }
         },
         {

@@ -176,7 +176,7 @@ def seed_database(db: Session):
 
     # ---------- Задачи ----------
     # Намеренно покрывает все статусы (TODO/IN_PROGRESS/DONE), все
-    # приоритеты (LOW/MEDIUM/HIGH), задачи без исполнителя и без рейтинга.
+    # приоритеты (LOW/MEDIUM/HIGH), задачи без исполнителя.
 
     task1 = Task(
         project_id=projects[0].id,
@@ -185,7 +185,6 @@ def seed_database(db: Session):
         description="Добавить регистрацию пользователей",
         priority="HIGH",
         status="TODO",
-        rating=5,
     )
 
     task2 = Task(
@@ -195,7 +194,6 @@ def seed_database(db: Session):
         description="Реализовать вход по JWT",
         priority="HIGH",
         status="IN_PROGRESS",
-        rating=4,
     )
 
     task3 = Task(
@@ -205,7 +203,6 @@ def seed_database(db: Session):
         description="Настроить Firebase",
         priority="MEDIUM",
         status="DONE",
-        rating=5,
     )
 
     task4 = Task(
@@ -215,7 +212,6 @@ def seed_database(db: Session):
         description="Добавить импорт базы клиентов",
         priority="LOW",
         status="TODO",
-        rating=3,
     )
 
     task5 = Task(
@@ -225,7 +221,6 @@ def seed_database(db: Session):
         description="Прогон линтера и тестов на пуш",
         priority="LOW",
         status="TODO",
-        rating=None,
     )
 
     task6 = Task(
@@ -235,7 +230,6 @@ def seed_database(db: Session):
         description="Добавить 2FA для входа в приложение",
         priority="MEDIUM",
         status="IN_PROGRESS",
-        rating=None,
     )
 
     task7 = Task(
@@ -245,7 +239,6 @@ def seed_database(db: Session):
         description="Реализовать сохранение корзины между сессиями",
         priority="HIGH",
         status="DONE",
-        rating=4,
     )
 
     db.add_all([task1, task2, task3, task4, task5, task6, task7])

@@ -66,23 +66,22 @@ def test_full_project_lifecycle(client, admin_token):
     )
     assert comment.status_code == 201
 
-    # 7. Исполнитель не может сам завершить и оценить задачу — только статус.
+    # 7. Исполнитель не может сам менять другие поля задачи — только статус.
     forbidden = client.patch(
         f"/api/v1/tasks/{task['id']}",
-        json={"rating": 5},
+        json={"priority": "LOW"},
         headers=auth_headers(assignee["token"]),
     )
     assert forbidden.status_code == 403
 
-    # 8. Менеджер закрывает задачу и выставляет оценку.
+    # 8. Менеджер закрывает задачу.
     done = client.patch(
         f"/api/v1/tasks/{task['id']}",
-        json={"status": "DONE", "rating": 5},
+        json={"status": "DONE"},
         headers=auth_headers(manager["token"]),
     )
     assert done.status_code == 200
     assert done.json()["status"] == "DONE"
-    assert done.json()["rating"] == 5
 
     # 9. Финальная задача видна в списке с меткой и корректной пагинацией.
     listing = client.get(

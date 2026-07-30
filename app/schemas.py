@@ -81,11 +81,6 @@ class TaskCreate(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     description: str | None = Field(None, max_length=1000)
     priority: TaskPriority = TaskPriority.MEDIUM
-    rating: int | None = Field(
-        default=None,
-        ge=1,
-        le=5,
-    )
     assigneeId: int | None = None
 
 
@@ -101,11 +96,6 @@ class TaskUpdate(BaseModel):
     )
     status: TaskStatus | None = None
     priority: TaskPriority | None = None
-    rating: int | None = Field(
-        default=None,
-        ge=1,
-        le=5,
-    )
     assignee_id: int | None = Field(default=None, alias="assigneeId")
 
 
@@ -222,7 +212,6 @@ class TaskResponse(BaseModel):
     description: str | None = None
     status: TaskStatus
     priority: TaskPriority
-    rating: int | None = None
     labels: list[LabelResponse] = []
 
 

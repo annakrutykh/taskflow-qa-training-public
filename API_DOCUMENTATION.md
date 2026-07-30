@@ -135,7 +135,7 @@ API использует JWT Bearer Token.
 Пользователь, назначенный исполнителем задачи (`assigneeId`), но не
 состоящий в участниках проекта, всё равно может просматривать эту
 задачу, менять её `status` и оставлять комментарии --- но не может
-менять `title`/`description`/`priority`/`rating`, удалять задачу или
+менять `title`/`description`/`priority`, удалять задачу или
 управлять метками.
 
 Кто не является ни участником проекта, ни исполнителем задачи --- для
@@ -425,13 +425,12 @@ API.
   "title": "Реализовать авторизацию",
   "description": "Добавить JWT авторизацию",
   "priority": "HIGH",
-  "rating": 5,
   "assigneeId": 2
 }
 ```
 
 Ограничения: title --- 1--100; description --- до 1000; priority ---
-`LOW`, `MEDIUM`, `HIGH`; rating --- 1--5; assigneeId --- ID
+`LOW`, `MEDIUM`, `HIGH`; assigneeId --- ID
 существующего пользователя или null (исполнителю не обязательно быть
 участником проекта, раздел 3.1).
 
@@ -452,12 +451,12 @@ API.
 
 Приоритеты: `LOW`, `MEDIUM`, `HIGH`.
 
-Поля сортировки: `createdAt`, `priority`, `rating`, `title`, `status`.
+Поля сортировки: `createdAt`, `priority`, `title`, `status`.
 
 Направление: `asc`, `desc`.
 
 Пример:
-`GET /api/v1/tasks?status=TODO&priority=HIGH&sort=rating&order=desc`.
+`GET /api/v1/tasks?status=TODO&priority=HIGH&sort=createdAt&order=desc`.
 
 Неизвестное поле `sort` приводит к `400 Bad Request`.
 
@@ -475,7 +474,6 @@ API.
   "title": "Создать регистрацию",
   "status": "TODO",
   "priority": "HIGH",
-  "rating": 5,
   "labels": [{ "id": 1, "name": "backend" }]
 }
 ```
@@ -489,15 +487,15 @@ API.
 зависит от роли:
 
 - `MANAGER`/`OWNER`/`ADMIN` --- любое из `title`, `description`,
-  `status`, `priority`, `rating`.
+  `status`, `priority`, `assigneeId` (переназначение или снятие
+  исполнителя; `null` снимает, несуществующий `assigneeId` --- `404`).
 - Исполнитель без членства в проекте --- только `status`.
 - `VIEWER` --- ничего (любой PATCH вернёт `403`).
 
 ``` json
 {
   "status": "IN_PROGRESS",
-  "priority": "HIGH",
-  "rating": 4
+  "priority": "HIGH"
 }
 ```
 
