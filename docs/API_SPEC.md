@@ -152,7 +152,7 @@ scope soft delete — удаляются физически, каскад на `
 | POST | `/auth/login` | нет | `200`, `{accessToken, tokenType}` | `401 INVALID_CREDENTIALS`, `422 VALIDATION_ERROR`, `429 TOO_MANY_REQUESTS` |
 | POST | `/auth/logout` | любой авторизованный | `204` | `401` |
 
-`POST /auth/register` body: `email, password (8–64), firstName (1–50), lastName (1–50)`.
+`POST /auth/register` body: `email, password (8–64, минимум одна строчная, одна заглавная буква и цифра), firstName (1–50), lastName (1–50)`.
 Новый пользователь получает роль `USER`, `isActive=true`.
 
 `POST /auth/login` body: `email, password`.

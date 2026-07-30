@@ -1,6 +1,7 @@
+import re
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserRole(StrEnum):
@@ -36,6 +37,20 @@ class Register(BaseModel):
     password: str = Field(min_length=8, max_length=64)
     firstName: str = Field(min_length=1, max_length=50)
     lastName: str = Field(min_length=1, max_length=50)
+
+    @field_validator("password")
+    @classmethod
+    def password_must_be_strong(cls, value: str) -> str:
+        if (
+            not re.search(r"[a-z]", value)
+            or not re.search(r"[A-Z]", value)
+            or not re.search(r"\d", value)
+        ):
+            raise ValueError(
+                "Password must contain at least one lowercase letter, "
+                "one uppercase letter and one digit"
+            )
+        return value
 
 
 class Login(BaseModel):

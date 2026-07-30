@@ -57,6 +57,41 @@ class TestRegister:
         assert resp.status_code == 422
         assert resp.json()["error"]["code"] == "VALIDATION_ERROR"
 
+    @pytest.mark.parametrize(
+        "password",
+        [
+            "alllowercase1",
+            "ALLUPPERCASE1",
+            "NoDigitsHere",
+        ],
+    )
+    def test_weak_password_is_validation_error(self, client, password):
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": unique_email(),
+                "password": password,
+                "firstName": "A",
+                "lastName": "B",
+            },
+        )
+
+        assert resp.status_code == 422
+        assert resp.json()["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_strong_password_is_accepted(self, client):
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": unique_email(),
+                "password": "Strong1Password",
+                "firstName": "A",
+                "lastName": "B",
+            },
+        )
+
+        assert resp.status_code == 201
+
 
 class TestLogin:
     @pytest.mark.smoke
