@@ -121,6 +121,28 @@ class TestAdminOnlyUserManagement:
         assert resp.status_code == 409
         assert resp.json()["error"]["code"] == "LAST_PROJECT_OWNER"
 
+    def test_deleting_owner_of_already_deleted_project_succeeds(
+        self, client, admin_token
+    ):
+        # Мягко удалённый проект не должен считаться при проверке "последний
+        # OWNER" — строка в project_members остаётся, но сам проект уже не
+        # существует (см. app.services.users.delete_user).
+        account = register_and_login(client)
+        project_id = create_project(client, account["token"])
+
+        delete_project_resp = client.delete(
+            f"/api/v1/projects/{project_id}",
+            headers=auth_headers(account["token"]),
+        )
+        assert delete_project_resp.status_code == 204
+
+        resp = client.delete(
+            f"/api/v1/users/{account['user']['id']}",
+            headers=auth_headers(admin_token),
+        )
+
+        assert resp.status_code == 204
+
 
 def _make_sole_active_admin(client, admin_token):
     """Промоутит свежего пользователя в ADMIN и деактивирует всех остальных
@@ -362,7 +384,9 @@ class TestUserSearch:
 
         assert resp.status_code == 422
 
-    def test_exclude_admins_hides_global_admin_from_results(self, client, admin_token):
+    def test_search_includes_global_admins_with_role(self, client, admin_token):
+        # ADMIN не исключается из поиска — его можно и добавить в проект
+        # (форсированной ролью ADMIN), и назначить исполнителем задачи.
         searcher = register_and_login(client)
         tag = uuid.uuid4().hex[:8]
         target = self._register(client, f"Adminov{tag}", "Testerov")
@@ -374,20 +398,12 @@ class TestUserSearch:
         assert promote.status_code == 200
 
         try:
-            without_filter = client.get(
+            resp = client.get(
                 f"/api/v1/users/search?q=Adminov{tag}",
                 headers=auth_headers(searcher["token"]),
             )
-            found = next(
-                u for u in without_filter.json() if u["email"] == target["email"]
-            )
+            found = next(u for u in resp.json() if u["email"] == target["email"])
             assert found["role"] == "ADMIN"
-
-            with_filter = client.get(
-                f"/api/v1/users/search?q=Adminov{tag}&excludeAdmins=true",
-                headers=auth_headers(searcher["token"]),
-            )
-            assert target["email"] not in {u["email"] for u in with_filter.json()}
         finally:
             client.patch(
                 f"/api/v1/users/{target['user']['id']}/role",

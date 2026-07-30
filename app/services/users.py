@@ -13,7 +13,7 @@ from app.core.errors import (
     MaxAdminsError,
     NotFoundError,
 )
-from app.models import ProjectMember, ProjectRole, User
+from app.models import Project, ProjectMember, ProjectRole, User
 
 MAX_ADMINS = 3
 
@@ -61,33 +61,22 @@ def list_users(db: Session, limit: int, offset: int) -> tuple[list[User], int]:
     return items, total
 
 
-def search_users(
-    db: Session, query: str, limit: int, exclude_admins: bool = False
-) -> list[User]:
+def search_users(db: Session, query: str, limit: int) -> list[User]:
     """Ищет активных пользователей по имени/фамилии/email — для приглашения
-    в проект (доступно любому авторизованному, в отличие от полного списка
-    в list_users, который ADMIN-only).
-
-    exclude_admins=True — для выбора исполнителя задачи: глобальному ADMIN
-    и так доступно всё, назначать на него задачи нет смысла (см.
-    docs/API_SPEC.md, раздел 3)."""
+    в проект или выбора исполнителя задачи (доступно любому авторизованному,
+    в отличие от полного списка в list_users, который ADMIN-only)."""
     pattern = f"%{query.strip()}%"
-
-    filters = [
-        User.deleted_at.is_(None),
-        or_(
-            User.first_name.ilike(pattern),
-            User.last_name.ilike(pattern),
-            User.email.ilike(pattern),
-        ),
-    ]
-
-    if exclude_admins:
-        filters.append(User.role != "ADMIN")
 
     return (
         db.query(User)
-        .filter(*filters)
+        .filter(
+            User.deleted_at.is_(None),
+            or_(
+                User.first_name.ilike(pattern),
+                User.last_name.ilike(pattern),
+                User.email.ilike(pattern),
+            ),
+        )
         .order_by(User.first_name.asc(), User.last_name.asc())
         .limit(limit)
         .all()
@@ -210,11 +199,18 @@ def delete_user(db: Session, actor: User, user_id: int) -> None:
     ):
         raise LastAdminError("Cannot delete the last active admin")
 
+    # Join на Project и фильтр deleted_at обязателен: у мягко удалённого
+    # проекта строки в project_members не чистятся (см. delete_project),
+    # без этого фильтра пользователя нельзя удалить из-за проекта, которого
+    # уже фактически не существует.
     owned_project_ids = [
         row.project_id
-        for row in db.query(ProjectMember.project_id).filter(
+        for row in db.query(ProjectMember.project_id)
+        .join(Project, Project.id == ProjectMember.project_id)
+        .filter(
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectRole.OWNER,
+            Project.deleted_at.is_(None),
         )
     ]
 

@@ -90,10 +90,9 @@ def users(
     response_model=list[UserSearchResult],
     summary="Найти пользователя по имени/email",
     description="Доступно любому авторизованному пользователю (в отличие от "
-    "полного списка GET /users) — минимальный набор полей, без роли и "
-    "статуса, чтобы пригласить нужного человека в проект по имени. "
-    "excludeAdmins=true исключает глобальных ADMIN из результата — для "
-    "выбора исполнителя задачи, где назначать на ADMIN нет смысла.",
+    "полного списка GET /users) — минимальный набор полей, без статуса, "
+    "чтобы пригласить нужного человека в проект или назначить исполнителем "
+    "задачи по имени.",
     responses={
         200: {"description": "Результаты поиска (может быть пустым)"},
         401: {"description": "Не авторизован"},
@@ -102,11 +101,10 @@ def users(
 def search_users_endpoint(
     q: str = Query(..., min_length=1, max_length=100),
     limit: int = Query(20, ge=1, le=50),
-    exclude_admins: bool = Query(False, alias="excludeAdmins"),
     _=Depends(cur),
     db: Session = Depends(get_db),
 ):
-    return search_users(db, q, limit, exclude_admins)
+    return search_users(db, q, limit)
 
 
 @router.get(
