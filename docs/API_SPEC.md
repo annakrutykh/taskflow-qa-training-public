@@ -237,8 +237,9 @@ scope soft delete — удаляются физически, каскад на `
 `ProjectCreate`: `name (1–100), description (опционально, ≤1000)`.
 `ProjectUpdate`: любое подмножество `name (1–100), description (≤1000), status (ACTIVE|ARCHIVED)`.
 `ProjectResponse`: `id, name, description, status, ownerId`.
-`ProjectMemberCreate`: `userId, role (OWNER|MANAGER|VIEWER, default VIEWER)`.
-`ProjectMemberResponse`: `userId, role`.
+`ProjectMemberCreate`: `userId, role (OWNER|MANAGER|VIEWER, default VIEWER)` — `ADMIN`
+синтаксически тоже валидное значение enum, но отклоняется бизнес-логикой (см. раздел 3.2).
+`ProjectMemberResponse`: `userId, role, firstName, lastName`.
 
 ### 6.4 Tasks
 
