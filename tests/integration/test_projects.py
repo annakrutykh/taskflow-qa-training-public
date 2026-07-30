@@ -62,14 +62,21 @@ class TestListAndGetProject:
         assert project_id not in [p["id"] for p in stranger_list["items"]]
 
     def test_admin_sees_all_projects(self, client, admin_token):
+        # GET /projects?limit=20&offset=0 (дефолт) сортирован по id ASC —
+        # только что созданный проект имеет наибольший id и физически не
+        # попадёт на первую страницу, если в БД уже накопилось 20+ проектов
+        # (обычное дело в общей dev-БД после многих прогонов тестов). Прямой
+        # GET /projects/{id} проверяет ровно то же самое (ADMIN обходит
+        # проверку членства), не завися от объёма/сортировки списка.
         owner = register_and_login(client)
         project_id = create_project(client, owner["token"])
 
-        admin_list = client.get(
-            "/api/v1/projects", headers=auth_headers(admin_token)
-        ).json()
+        resp = client.get(
+            f"/api/v1/projects/{project_id}", headers=auth_headers(admin_token)
+        )
 
-        assert project_id in [p["id"] for p in admin_list["items"]]
+        assert resp.status_code == 200
+        assert resp.json()["id"] == project_id
 
     @pytest.mark.smoke
     def test_get_project_as_member_ok(self, client):

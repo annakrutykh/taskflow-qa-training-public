@@ -234,7 +234,7 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 
 `TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), assigneeId (опционально, должен существовать)`.
 `TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
-`TaskResponse`: `id, projectId, assigneeId, title, description, status, priority, labels: LabelResponse[]`.
+`TaskResponse`: `id, projectId, assigneeId, title, description, status, priority, labels: LabelResponse[], commentsCount` — число неудалённых комментариев задачи, посчитано на уровне SQL (без отдельного запроса).
 
 ### 6.5 Comments
 

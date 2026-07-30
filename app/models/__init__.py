@@ -11,9 +11,10 @@ from sqlalchemy import (
     Integer,
     String,
     Table,
+    select,
     text,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -265,6 +266,18 @@ class Comment(Base):
     )
 
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+
+# Коррелированный подзапрос-COUNT вместо relationship+len() — иначе список
+# задач (list_tasks) тянул бы все комментарии каждой задачи, чтобы просто
+# посчитать их (N+1). column_property вычисляется прямо в SQL самого
+# запроса Task, без отдельных запросов.
+Task.comments_count = column_property(
+    select(func.count(Comment.id))
+    .where(Comment.task_id == Task.id, Comment.deleted_at.is_(None))
+    .correlate_except(Comment)
+    .scalar_subquery()
+)
 
 
 class Label(Base):

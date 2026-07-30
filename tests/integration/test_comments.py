@@ -125,3 +125,51 @@ class TestDeleteComment:
         )
 
         assert resp.status_code == 403
+
+
+class TestTaskCommentsCount:
+    def test_zero_for_new_task(self, client):
+        owner = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        task = create_task(client, owner["token"], project_id)
+
+        assert task["commentsCount"] == 0
+
+    def test_reflects_created_and_deleted_comments(self, client):
+        owner = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        task = create_task(client, owner["token"], project_id)
+
+        first = _create_comment(client, owner["token"], task["id"])
+        _create_comment(client, owner["token"], task["id"])
+
+        get_resp = client.get(
+            f"/api/v1/tasks/{task['id']}",
+            headers=auth_headers(owner["token"]),
+        )
+        assert get_resp.json()["commentsCount"] == 2
+
+        client.delete(
+            f"/api/v1/tasks/{task['id']}/comments/{first['id']}",
+            headers=auth_headers(owner["token"]),
+        )
+
+        get_resp = client.get(
+            f"/api/v1/tasks/{task['id']}",
+            headers=auth_headers(owner["token"]),
+        )
+        assert get_resp.json()["commentsCount"] == 1
+
+    def test_reflected_in_list_tasks(self, client):
+        owner = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        task = create_task(client, owner["token"], project_id)
+        _create_comment(client, owner["token"], task["id"])
+
+        resp = client.get(
+            f"/api/v1/tasks?projectId={project_id}",
+            headers=auth_headers(owner["token"]),
+        )
+
+        items = resp.json()["items"]
+        assert next(t["commentsCount"] for t in items if t["id"] == task["id"]) == 1

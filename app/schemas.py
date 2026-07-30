@@ -213,6 +213,7 @@ class TaskResponse(BaseModel):
     status: TaskStatus
     priority: TaskPriority
     labels: list[LabelResponse] = []
+    comments_count: int = Field(default=0, alias="commentsCount")
 
 
 class CommentResponse(BaseModel):
