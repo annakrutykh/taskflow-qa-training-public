@@ -61,22 +61,33 @@ def list_users(db: Session, limit: int, offset: int) -> tuple[list[User], int]:
     return items, total
 
 
-def search_users(db: Session, query: str, limit: int) -> list[User]:
+def search_users(
+    db: Session, query: str, limit: int, exclude_admins: bool = False
+) -> list[User]:
     """Ищет активных пользователей по имени/фамилии/email — для приглашения
     в проект (доступно любому авторизованному, в отличие от полного списка
-    в list_users, который ADMIN-only)."""
+    в list_users, который ADMIN-only).
+
+    exclude_admins=True — для выбора исполнителя задачи: глобальному ADMIN
+    и так доступно всё, назначать на него задачи нет смысла (см.
+    docs/API_SPEC.md, раздел 3)."""
     pattern = f"%{query.strip()}%"
+
+    filters = [
+        User.deleted_at.is_(None),
+        or_(
+            User.first_name.ilike(pattern),
+            User.last_name.ilike(pattern),
+            User.email.ilike(pattern),
+        ),
+    ]
+
+    if exclude_admins:
+        filters.append(User.role != "ADMIN")
 
     return (
         db.query(User)
-        .filter(
-            User.deleted_at.is_(None),
-            or_(
-                User.first_name.ilike(pattern),
-                User.last_name.ilike(pattern),
-                User.email.ilike(pattern),
-            ),
-        )
+        .filter(*filters)
         .order_by(User.first_name.asc(), User.last_name.asc())
         .limit(limit)
         .all()

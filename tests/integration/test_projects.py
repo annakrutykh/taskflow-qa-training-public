@@ -267,6 +267,85 @@ class TestProjectMembers:
         assert resp.status_code == 409
         assert resp.json()["error"]["code"] == "LAST_PROJECT_OWNER"
 
+    def test_adding_global_admin_forces_admin_project_role(self, client, admin_token):
+        owner = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        future_admin = register_and_login(client)
+        promote = client.patch(
+            f"/api/v1/users/{future_admin['user']['id']}/role",
+            json={"role": "ADMIN"},
+            headers=auth_headers(admin_token),
+        )
+        assert promote.status_code == 200
+
+        try:
+            # Роль VIEWER передана явно, но должна быть проигнорирована —
+            # глобальный ADMIN в project_members всегда получает роль ADMIN.
+            membership = add_member(
+                client, owner["token"], project_id, future_admin["user"]["id"], "VIEWER"
+            )
+            assert membership["role"] == "ADMIN"
+        finally:
+            client.patch(
+                f"/api/v1/users/{future_admin['user']['id']}/role",
+                json={"role": "USER"},
+                headers=auth_headers(admin_token),
+            )
+
+    def test_cannot_assign_admin_project_role_to_regular_user(self, client):
+        owner = register_and_login(client)
+        regular = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+
+        resp = client.post(
+            f"/api/v1/projects/{project_id}/members",
+            json={"userId": regular["user"]["id"], "role": "ADMIN"},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 422
+
+    def test_cannot_change_role_of_admin_project_member(self, client, admin_token):
+        owner = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        future_admin = register_and_login(client)
+        promote = client.patch(
+            f"/api/v1/users/{future_admin['user']['id']}/role",
+            json={"role": "ADMIN"},
+            headers=auth_headers(admin_token),
+        )
+        assert promote.status_code == 200
+
+        try:
+            add_member(client, owner["token"], project_id, future_admin["user"]["id"])
+
+            resp = client.patch(
+                f"/api/v1/projects/{project_id}/members/{future_admin['user']['id']}",
+                json={"role": "VIEWER"},
+                headers=auth_headers(owner["token"]),
+            )
+            assert resp.status_code == 422
+        finally:
+            client.patch(
+                f"/api/v1/users/{future_admin['user']['id']}/role",
+                json={"role": "USER"},
+                headers=auth_headers(admin_token),
+            )
+
+    def test_cannot_promote_regular_member_to_admin_project_role(self, client):
+        owner = register_and_login(client)
+        member = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        add_member(client, owner["token"], project_id, member["user"]["id"])
+
+        resp = client.patch(
+            f"/api/v1/projects/{project_id}/members/{member['user']['id']}",
+            json={"role": "ADMIN"},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 422
+
     def test_can_demote_owner_when_another_owner_exists(self, client):
         owner = register_and_login(client)
         second_owner = register_and_login(client)

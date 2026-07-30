@@ -362,6 +362,36 @@ class TestUserSearch:
 
         assert resp.status_code == 422
 
+    def test_exclude_admins_hides_global_admin_from_results(self, client, admin_token):
+        searcher = register_and_login(client)
+        tag = uuid.uuid4().hex[:8]
+        target = self._register(client, f"Adminov{tag}", "Testerov")
+        promote = client.patch(
+            f"/api/v1/users/{target['user']['id']}/role",
+            json={"role": "ADMIN"},
+            headers=auth_headers(admin_token),
+        )
+        assert promote.status_code == 200
+
+        try:
+            without_filter = client.get(
+                f"/api/v1/users/search?q=Adminov{tag}",
+                headers=auth_headers(searcher["token"]),
+            )
+            assert target["email"] in {u["email"] for u in without_filter.json()}
+
+            with_filter = client.get(
+                f"/api/v1/users/search?q=Adminov{tag}&excludeAdmins=true",
+                headers=auth_headers(searcher["token"]),
+            )
+            assert target["email"] not in {u["email"] for u in with_filter.json()}
+        finally:
+            client.patch(
+                f"/api/v1/users/{target['user']['id']}/role",
+                json={"role": "USER"},
+                headers=auth_headers(admin_token),
+            )
+
     def test_search_requires_auth(self, client):
         resp = client.get("/api/v1/users/search?q=test")
 

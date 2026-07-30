@@ -29,6 +29,7 @@ class ProjectRole(enum.StrEnum):
     OWNER = "OWNER"
     MANAGER = "MANAGER"
     VIEWER = "VIEWER"
+    ADMIN = "ADMIN"
 
 
 task_labels = Table(

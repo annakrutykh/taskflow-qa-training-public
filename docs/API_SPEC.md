@@ -63,10 +63,17 @@
 | `VIEWER` | Просмотр проекта, задач, участников. Комментирование |
 | `MANAGER` | + полный CRUD задач, привязка меток |
 | `OWNER` | + удаление проекта, управление составом участников и их ролями |
+| `ADMIN` | Информационная роль: присваивается автоматически, когда в проект добавляют пользователя с глобальной ролью `ADMIN` — фактические права у него и так максимальные через глобальный обход членства, эта роль не даёт и не отнимает прав |
 
 Владелец проекта (`projects.owner_id`) всегда имеет строку в `project_members` с ролью `OWNER` —
 создаётся автоматически при `POST /projects`. У каждого проекта минимум один `OWNER` — это
 инвариант, поддерживаемый на уровне API (`LAST_PROJECT_OWNER`, `409`).
+
+Роль `ADMIN` в `project_members` нельзя присвоить вручную и нельзя изменить: `POST
+/projects/{id}/members` всегда форсирует её для пользователя с глобальной ролью `ADMIN`
+(переданная роль игнорируется) и отклоняет `ADMIN` для всех остальных (`422
+VALIDATION_ERROR`); `PATCH /projects/{id}/members/{userId}/role` отклоняет попытку изменить роль
+такого участника тем же кодом.
 
 ### Доступ исполнителя (`Task.assignee_id`)
 
@@ -195,13 +202,16 @@ scope soft delete — удаляются физически, каскад на `
 
 `UserResponse`: `id, email, firstName, lastName, role, isActive`.
 
-`GET /users/search?q=&limit=` — поиск по подстроке в имени/фамилии/email
-(регистронезависимо), доступен любому авторизованному пользователю в отличие
-от полного `GET /users` (`ADMIN`-only). Нужен, чтобы обычный участник мог
-найти коллегу по имени при добавлении в проект, не имея доступа к
-административному списку пользователей. `UserSearchResult`: `id, firstName,
-lastName, email` — без `role`/`isActive`, это не замена административного
-списка. `q` обязателен (мин. 1 символ), `limit` по умолчанию 20 (макс. 50).
+`GET /users/search?q=&limit=&excludeAdmins=` — поиск по подстроке в
+имени/фамилии/email (регистронезависимо), доступен любому авторизованному
+пользователю в отличие от полного `GET /users` (`ADMIN`-only). Нужен, чтобы
+обычный участник мог найти коллегу по имени при добавлении в проект, не имея
+доступа к административному списку пользователей. `UserSearchResult`: `id,
+firstName, lastName, email` — без `role`/`isActive`, это не замена
+административного списка. `q` обязателен (мин. 1 символ), `limit` по
+умолчанию 20 (макс. 50). `excludeAdmins=true` (по умолчанию `false`)
+исключает пользователей с глобальной ролью `ADMIN` из результата — применяется
+при выборе исполнителя задачи, где назначение на `ADMIN` не имеет смысла.
 
 ### 6.3 Projects
 
@@ -212,9 +222,9 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 | GET | `/projects/{id}` | участник любой роли или `ADMIN` | `200 ProjectResponse` | `401`, `404` |
 | PATCH | `/projects/{id}` | `MANAGER+` или `ADMIN` | `200`, `name`/`description`/`status` | `401`, `403`, `404`, `422` |
 | DELETE | `/projects/{id}` | `OWNER` или `ADMIN` | `204`, soft delete, каскад на задачи/комментарии | `401`, `403` (участник, но роль ниже `OWNER`), `404` (не участник/не найден) |
-| POST | `/projects/{id}/members` | `OWNER` или `ADMIN` | `201`, `Location: .../members/{userId}` | `401`, `403`, `404` (проект/пользователь), `409 MEMBER_ALREADY_EXISTS` |
+| POST | `/projects/{id}/members` | `OWNER` или `ADMIN` | `201`, `Location: .../members/{userId}` | `401`, `403`, `404` (проект/пользователь), `409 MEMBER_ALREADY_EXISTS`, `422` (роль `ADMIN` для не-ADMIN пользователя) |
 | GET | `/projects/{id}/members` | любой участник или `ADMIN` | `200`, список участников | `401`, `404` |
-| PATCH | `/projects/{id}/members/{userId}` | `OWNER` или `ADMIN` | `200` | `401`, `403`, `404`, `409 LAST_PROJECT_OWNER` |
+| PATCH | `/projects/{id}/members/{userId}` | `OWNER` или `ADMIN` | `200` | `401`, `403`, `404`, `409 LAST_PROJECT_OWNER`, `422` (роль участника-ADMIN неизменяема / роль ADMIN для не-ADMIN пользователя) |
 | DELETE | `/projects/{id}/members/{userId}` | `OWNER` или `ADMIN` | `204` | `401`, `403`, `404`, `409 LAST_PROJECT_OWNER` |
 
 `ProjectCreate`: `name (1–100), description (опционально, ≤1000)`.
@@ -280,7 +290,7 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 |---|---|---|
 | `users` | `id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, deleted_at` | `role` — enum `USER/ADMIN`; `email` уникален только среди активных строк (частичный индекс `WHERE deleted_at IS NULL`) |
 | `projects` | `id, name, description, status, owner_id → users.id, created_at, deleted_at` | FK `owner_id` |
-| `project_members` | `project_id → projects.id (cascade), user_id → users.id (cascade), role, created_at` | составной PK `(project_id, user_id)`, индекс на `user_id`. `role` — enum `OWNER/MANAGER/VIEWER` |
+| `project_members` | `project_id → projects.id (cascade), user_id → users.id (cascade), role, created_at` | составной PK `(project_id, user_id)`, индекс на `user_id`. `role` — enum `OWNER/MANAGER/VIEWER/ADMIN` |
 | `tasks` | `id, project_id → projects.id (cascade), assignee_id → users.id, title, description, status, priority, created_at, deleted_at` | FK на `projects`, `users` |
 | `comments` | `id, task_id → tasks.id (cascade), author_id → users.id, text, created_at, deleted_at` | FK на `tasks`, `users` |
 | `labels` | `id, name (unique)` | вне scope soft delete — удаляется физически |

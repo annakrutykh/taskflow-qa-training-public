@@ -25,6 +25,7 @@ class ProjectRole(StrEnum):
     OWNER = "OWNER"
     MANAGER = "MANAGER"
     VIEWER = "VIEWER"
+    ADMIN = "ADMIN"
 
 
 class ProjectStatus(StrEnum):

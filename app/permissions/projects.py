@@ -23,6 +23,14 @@ _ROLE_RANK = {
     ProjectRole.VIEWER: 0,
     ProjectRole.MANAGER: 1,
     ProjectRole.OWNER: 2,
+    # ADMIN как роль в project_members — чисто информационная (см.
+    # add_member/update_member_role в app.services.projects): её носитель
+    # всегда одновременно глобальный ADMIN, а для него require_project_role
+    # и get_task_access уже отдают полный доступ ДО обращения к этой роли
+    # (см. ветку "if user.role == 'ADMIN'" ниже). Ранг нужен только чтобы
+    # сравнение _ROLE_RANK[...] не падало с KeyError, если строка ADMIN
+    # где-то попадёт в общий код сравнения ролей.
+    ProjectRole.ADMIN: 3,
 }
 
 

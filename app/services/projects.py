@@ -11,6 +11,7 @@ from app.core.errors import (
     LastProjectOwnerError,
     NotFoundError,
     ProjectMemberAlreadyExistsError,
+    ValidationError,
 )
 from app.models import Comment, Project, ProjectMember, ProjectRole, Task, User
 from app.permissions import get_membership, require_project_role
@@ -182,8 +183,13 @@ def add_member(
 ) -> ProjectMember:
     """Добавляет пользователя в проект с указанной ролью.
 
+    Глобальный ADMIN, добавленный в проект, всегда получает роль ADMIN
+    (переданная роль игнорируется) — у него и так полный доступ, роль тут
+    чисто информационная, любая другая была бы вводящей в заблуждение.
+    Роль ADMIN, наоборот, нельзя присвоить обычному пользователю.
+
     Бросает: NotFoundError (проект/пользователь), ForbiddenError,
-    ProjectMemberAlreadyExistsError.
+    ProjectMemberAlreadyExistsError, ValidationError (ADMIN — не тому).
     """
     project = get_active(db, Project, project_id)
 
@@ -196,6 +202,13 @@ def add_member(
 
     if not target_user:
         raise NotFoundError("User not found")
+
+    if target_user.role == "ADMIN":
+        role = ProjectRole.ADMIN
+    elif role == ProjectRole.ADMIN:
+        raise ValidationError(
+            "Only a global ADMIN user can have the ADMIN project role"
+        )
 
     if get_membership(db, project_id, target_user_id) is not None:
         raise ProjectMemberAlreadyExistsError("User is already a project member")
@@ -253,7 +266,8 @@ def update_member_role(
     """Меняет роль участника проекта.
 
     Бросает: NotFoundError, ForbiddenError, LastProjectOwnerError (при
-    попытке разжаловать последнего OWNER).
+    попытке разжаловать последнего OWNER), ValidationError (роль ADMIN
+    зарезервирована за глобальными ADMIN — см. add_member).
     """
     project = get_active(db, Project, project_id)
 
@@ -266,6 +280,14 @@ def update_member_role(
 
     if not membership:
         raise NotFoundError("Project member not found")
+
+    if membership.user.role == "ADMIN":
+        raise ValidationError("Cannot change project role of a global ADMIN")
+
+    if role == ProjectRole.ADMIN:
+        raise ValidationError(
+            "Only a global ADMIN user can have the ADMIN project role"
+        )
 
     if membership.role == ProjectRole.OWNER and role != ProjectRole.OWNER:
         owner_count = (
