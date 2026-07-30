@@ -242,6 +242,10 @@ http://localhost:5601
 4. **Timestamp field** — выберите `@timestamp`.
 5. Нажмите **Save data view to Kibana** (или **Create data view**).
 
+> Если сразу после запуска клик по «Discover» ничего не делает — это не
+> баг: Kibana помечается `healthy` в Docker раньше, чем реально прогревается
+> её интерфейс. Подождите ещё минуту-две и обновите страницу (`F5`).
+
 #### Redis Commander (просмотр ключей Redis в браузере)
 
 ```
