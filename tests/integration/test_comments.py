@@ -31,6 +31,9 @@ class TestCreateAndListComments:
 
         assert resp.status_code == 201
         assert "location" in resp.headers
+        body = resp.json()
+        assert body["authorFirstName"] == owner["user"]["firstName"]
+        assert body["authorLastName"] == owner["user"]["lastName"]
 
     def test_viewer_can_comment(self, client):
         owner = register_and_login(client)

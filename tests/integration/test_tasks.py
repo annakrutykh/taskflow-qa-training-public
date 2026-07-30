@@ -28,6 +28,28 @@ class TestCreateTask:
         assert body["status"] == "TODO"
         assert body["priority"] == "HIGH"
         assert body["labels"] == []
+        assert body["assigneeFirstName"] is None
+        assert body["assigneeLastName"] is None
+
+    def test_assignee_name_is_included(self, client):
+        owner = register_and_login(client)
+        assignee = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+
+        resp = client.post(
+            "/api/v1/tasks",
+            json={
+                "projectId": project_id,
+                "title": "Do the thing",
+                "assigneeId": assignee["user"]["id"],
+            },
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["assigneeFirstName"] == assignee["user"]["firstName"]
+        assert body["assigneeLastName"] == assignee["user"]["lastName"]
 
     def test_viewer_cannot_create(self, client):
         owner = register_and_login(client)

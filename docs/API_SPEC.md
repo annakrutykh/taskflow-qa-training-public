@@ -234,7 +234,7 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 
 `TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), assigneeId (опционально, должен существовать)`.
 `TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
-`TaskResponse`: `id, projectId, assigneeId, title, description, status, priority, labels: LabelResponse[], commentsCount` — число неудалённых комментариев задачи, посчитано на уровне SQL (без отдельного запроса).
+`TaskResponse`: `id, projectId, assigneeId, assigneeFirstName, assigneeLastName, title, description, status, priority, labels: LabelResponse[], commentsCount` — `assigneeFirstName`/`assigneeLastName` — `null`, если `assigneeId` не задан; `commentsCount` — число неудалённых комментариев задачи, посчитано на уровне SQL (без отдельного запроса).
 
 ### 6.5 Comments
 
@@ -246,7 +246,7 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 | DELETE | `/tasks/{taskId}/comments/{id}` | автор либо участник `MANAGER+`/`ADMIN` (модерация) | `204`, soft delete | `401`, `403`, `404` |
 
 `CommentCreate`/`CommentUpdate`: `text (1–500)`. Автор определяется по токену.
-`CommentResponse`: `id, taskId, authorId, text`.
+`CommentResponse`: `id, taskId, authorId, authorFirstName, authorLastName, text`.
 
 ### 6.6 Labels
 

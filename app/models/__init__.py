@@ -235,6 +235,19 @@ class Task(Base):
         secondary=task_labels,
     )
 
+    # lazy="joined" — исполнителя показывают по имени и в списке задач
+    # одного проекта, и в кросс-проектном "Мои задачи" (там нет единого
+    # списка участников проекта под рукой, как на странице проекта).
+    assignee = relationship("User", foreign_keys=[assignee_id], lazy="joined")
+
+    @property
+    def assignee_first_name(self) -> str | None:
+        return self.assignee.first_name if self.assignee else None
+
+    @property
+    def assignee_last_name(self) -> str | None:
+        return self.assignee.last_name if self.assignee else None
+
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -266,6 +279,16 @@ class Comment(Base):
     )
 
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    author = relationship("User", foreign_keys=[author_id], lazy="joined")
+
+    @property
+    def author_first_name(self) -> str:
+        return self.author.first_name
+
+    @property
+    def author_last_name(self) -> str:
+        return self.author.last_name
 
 
 # Коррелированный подзапрос-COUNT вместо relationship+len() — иначе список

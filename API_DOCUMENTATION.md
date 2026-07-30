@@ -468,14 +468,19 @@ API. Ошибка `409 LAST_ADMIN`, если это последний акти�
 Получение задачи по ID. Доступ --- участник проекта любой роли,
 исполнитель задачи (`assigneeId`) или `ADMIN`.
 
-Ответ включает поле `labels` --- список меток, привязанных к задаче, и
+Ответ включает поле `labels` --- список меток, привязанных к задаче,
 `commentsCount` --- число неудалённых комментариев (считается на уровне
-SQL, без отдельного запроса к `/comments`):
+SQL, без отдельного запроса к `/comments`), и `assigneeFirstName`/
+`assigneeLastName` --- имя исполнителя (`null`, если `assigneeId` не
+задан):
 
 ``` json
 {
   "id": 1,
   "projectId": 1,
+  "assigneeId": 2,
+  "assigneeFirstName": "Иван",
+  "assigneeLastName": "Иванов",
   "title": "Создать регистрацию",
   "status": "TODO",
   "priority": "HIGH",
@@ -534,6 +539,20 @@ SQL, без отдельного запроса к `/comments`):
 
 Параметры: `limit` --- 1--100, по умолчанию 20; `offset` --- по
 умолчанию 0. Ответ обёрнут в стандартную структуру списка (раздел 2.2).
+
+`CommentResponse` включает `authorFirstName`/`authorLastName` --- имя
+автора, не только `authorId`:
+
+``` json
+{
+  "id": 1,
+  "taskId": 1,
+  "authorId": 2,
+  "authorFirstName": "Иван",
+  "authorLastName": "Иванов",
+  "text": "Задача взята в работу"
+}
+```
 
 ### PATCH `/api/v1/tasks/{task_id}/comments/{comment_id}`
 

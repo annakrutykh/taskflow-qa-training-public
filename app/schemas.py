@@ -207,6 +207,8 @@ class TaskResponse(BaseModel):
     id: int
     project_id: int = Field(alias="projectId")
     assignee_id: int | None = Field(default=None, alias="assigneeId")
+    assignee_first_name: str | None = Field(default=None, alias="assigneeFirstName")
+    assignee_last_name: str | None = Field(default=None, alias="assigneeLastName")
 
     title: str
     description: str | None = None
@@ -225,6 +227,8 @@ class CommentResponse(BaseModel):
     id: int
     task_id: int = Field(alias="taskId")
     author_id: int = Field(alias="authorId")
+    author_first_name: str = Field(alias="authorFirstName")
+    author_last_name: str = Field(alias="authorLastName")
     text: str
 
 
