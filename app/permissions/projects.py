@@ -58,10 +58,10 @@ def require_project_role(
     membership = get_membership(db, project.id, user.id)
 
     if membership is None:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     if _ROLE_RANK[membership.role] < _ROLE_RANK[min_role]:
-        raise ForbiddenError("Insufficient project role")
+        raise ForbiddenError("Недостаточно прав в проекте")
 
     return membership
 
@@ -102,10 +102,10 @@ def get_accessible_task(db: Session, task_id: int, user: User) -> Task:
     task = db.query(Task).filter(Task.id == task_id, Task.deleted_at.is_(None)).first()
 
     if not task:
-        raise NotFoundError("Task not found")
+        raise NotFoundError("Задача не найдена")
 
     if get_task_access(db, task, user) == TaskAccess.NONE:
-        raise NotFoundError("Task not found")
+        raise NotFoundError("Задача не найдена")
 
     return task
 
@@ -115,4 +115,4 @@ def require_task_manage(db: Session, task: Task, user: User) -> None:
     с ролью MANAGER+ или ADMIN. Просмотр уже подтверждён вызывающим кодом
     через get_accessible_task."""
     if get_task_access(db, task, user) != TaskAccess.MANAGER:
-        raise ForbiddenError("Insufficient rights")
+        raise ForbiddenError("Недостаточно прав")

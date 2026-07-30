@@ -91,7 +91,7 @@ def get_user(db: Session, user_id: int) -> User:
     user = get_active(db, User, user_id)
 
     if not user:
-        raise NotFoundError("User not found")
+        raise NotFoundError("Пользователь не найден")
 
     return user
 
@@ -108,7 +108,7 @@ def update_role(db: Session, actor: User, user_id: int, role: str) -> User:
     target_user = get_active(db, User, user_id)
 
     if not target_user:
-        raise NotFoundError("User not found")
+        raise NotFoundError("Пользователь не найден")
 
     if (
         target_user.role == "ADMIN"
@@ -116,14 +116,16 @@ def update_role(db: Session, actor: User, user_id: int, role: str) -> User:
         and role != "ADMIN"
         and _other_active_admin_count(db, user_id) == 0
     ):
-        raise LastAdminError("Cannot demote the last active admin")
+        raise LastAdminError("Нельзя разжаловать последнего активного администратора")
 
     if (
         target_user.role != "ADMIN"
         and role == "ADMIN"
         and _other_active_admin_count(db, user_id) >= MAX_ADMINS
     ):
-        raise MaxAdminsError(f"Cannot have more than {MAX_ADMINS} active admins")
+        raise MaxAdminsError(
+            f"Нельзя одновременно иметь более {MAX_ADMINS} активных администраторов"
+        )
 
     target_user.role = role
 
@@ -152,7 +154,7 @@ def update_status(db: Session, actor: User, user_id: int, is_active: bool) -> Us
     target_user = get_active(db, User, user_id)
 
     if not target_user:
-        raise NotFoundError("User not found")
+        raise NotFoundError("Пользователь не найден")
 
     if (
         not is_active
@@ -160,7 +162,9 @@ def update_status(db: Session, actor: User, user_id: int, is_active: bool) -> Us
         and target_user.is_active
         and _other_active_admin_count(db, user_id) == 0
     ):
-        raise LastAdminError("Cannot deactivate the last active admin")
+        raise LastAdminError(
+            "Нельзя деактивировать последнего активного администратора"
+        )
 
     target_user.is_active = is_active
 
@@ -190,14 +194,14 @@ def delete_user(db: Session, actor: User, user_id: int) -> None:
     target_user = get_active(db, User, user_id)
 
     if not target_user:
-        raise NotFoundError("User not found")
+        raise NotFoundError("Пользователь не найден")
 
     if (
         target_user.role == "ADMIN"
         and target_user.is_active
         and _other_active_admin_count(db, user_id) == 0
     ):
-        raise LastAdminError("Cannot delete the last active admin")
+        raise LastAdminError("Нельзя удалить последнего активного администратора")
 
     # Join на Project и фильтр deleted_at обязателен: у мягко удалённого
     # проекта строки в project_members не чистятся (см. delete_project),
@@ -227,7 +231,7 @@ def delete_user(db: Session, actor: User, user_id: int) -> None:
 
         if other_owners == 0:
             raise LastProjectOwnerError(
-                "Cannot delete a user who is the last owner of a project"
+                "Нельзя удалить пользователя — он последний владелец проекта"
             )
 
     target_user.deleted_at = datetime.now(UTC)

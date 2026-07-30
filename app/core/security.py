@@ -50,7 +50,7 @@ def build_cur(missing_credentials_error_cls=UnauthorizedError):
         db: Session = Depends(get_db),
     ):
         if c is None:
-            raise missing_credentials_error_cls("Not authenticated")
+            raise missing_credentials_error_cls("Не авторизован")
 
         try:
             payload = jwt.decode(
@@ -60,16 +60,16 @@ def build_cur(missing_credentials_error_cls=UnauthorizedError):
             )
             user_id = int(payload["sub"])
         except (jwt.PyJWTError, ValueError, KeyError) as exc:
-            raise UnauthorizedError("Invalid token") from exc
+            raise UnauthorizedError("Невалидный токен") from exc
 
         jti = payload.get("jti")
         if jti and _is_blacklisted(jti):
-            raise UnauthorizedError("Token has been revoked")
+            raise UnauthorizedError("Токен отозван")
 
         user = get_active(db, User, user_id)
 
         if not user or not user.is_active:
-            raise UnauthorizedError("Inactive user")
+            raise UnauthorizedError("Пользователь деактивирован")
 
         request.state.user_id = user.id
         request.state.username = user.email
@@ -88,6 +88,6 @@ def adm(
     user=Depends(cur),
 ):
     if user.role != "ADMIN":
-        raise ForbiddenError("Admin required")
+        raise ForbiddenError("Требуются права администратора")
 
     return user

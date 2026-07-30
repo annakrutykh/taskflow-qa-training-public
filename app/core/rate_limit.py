@@ -59,7 +59,7 @@ def rate_limit(
 
         if attempts > max_attempts:
             raise TooManyRequestsError(
-                f"Too many {action} attempts, try again later",
+                f"Слишком много попыток ({action}), повторите позже",
                 headers={"Retry-After": str(max(retry_after, 1))},
             )
 

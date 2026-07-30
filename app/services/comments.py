@@ -68,10 +68,10 @@ def update_comment(
     comment = _get_active_comment(db, task_id, comment_id)
 
     if not comment:
-        raise NotFoundError("Comment not found")
+        raise NotFoundError("Комментарий не найден")
 
     if comment.author_id != user.id:
-        raise ForbiddenError("Only the author can edit this comment")
+        raise ForbiddenError("Редактировать комментарий может только его автор")
 
     comment.text = text
 
@@ -94,13 +94,13 @@ def delete_comment(db: Session, user: User, task_id: int, comment_id: int) -> No
     comment = _get_active_comment(db, task_id, comment_id)
 
     if not comment:
-        raise NotFoundError("Comment not found")
+        raise NotFoundError("Комментарий не найден")
 
     if (
         comment.author_id != user.id
         and get_task_access(db, task, user) != TaskAccess.MANAGER
     ):
-        raise ForbiddenError("Insufficient rights")
+        raise ForbiddenError("Недостаточно прав")
 
     comment.deleted_at = datetime.now(UTC)
 

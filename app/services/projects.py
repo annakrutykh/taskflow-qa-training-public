@@ -85,7 +85,7 @@ def get_project(db: Session, user: User, project_id: int) -> Project:
         project = get_active(db, Project, project_id)
 
         if not project:
-            raise NotFoundError("Project not found")
+            raise NotFoundError("Проект не найден")
 
         cache_set(
             cache_key,
@@ -114,7 +114,7 @@ def update_project(
     project = get_active(db, Project, project_id)
 
     if not project:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     require_project_role(db, project, user, ProjectRole.MANAGER)
 
@@ -140,7 +140,7 @@ def delete_project(db: Session, user: User, project_id: int) -> None:
     project = get_active(db, Project, project_id)
 
     if not project:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     require_project_role(db, project, user, ProjectRole.OWNER)
 
@@ -194,24 +194,24 @@ def add_member(
     project = get_active(db, Project, project_id)
 
     if not project:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     require_project_role(db, project, user, ProjectRole.OWNER)
 
     target_user = get_active(db, User, target_user_id)
 
     if not target_user:
-        raise NotFoundError("User not found")
+        raise NotFoundError("Пользователь не найден")
 
     if target_user.role == "ADMIN":
         role = ProjectRole.ADMIN
     elif role == ProjectRole.ADMIN:
         raise ValidationError(
-            "Only a global ADMIN user can have the ADMIN project role"
+            "Роль ADMIN в проекте можно назначить только глобальному администратору"
         )
 
     if get_membership(db, project_id, target_user_id) is not None:
-        raise ProjectMemberAlreadyExistsError("User is already a project member")
+        raise ProjectMemberAlreadyExistsError("Пользователь уже участник проекта")
 
     membership = ProjectMember(
         project_id=project_id,
@@ -245,7 +245,7 @@ def list_members(
     project = get_active(db, Project, project_id)
 
     if not project:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     require_project_role(db, project, user, ProjectRole.VIEWER)
 
@@ -272,21 +272,23 @@ def update_member_role(
     project = get_active(db, Project, project_id)
 
     if not project:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     require_project_role(db, project, user, ProjectRole.OWNER)
 
     membership = get_membership(db, project_id, member_user_id)
 
     if not membership:
-        raise NotFoundError("Project member not found")
+        raise NotFoundError("Участник проекта не найден")
 
     if membership.user.role == "ADMIN":
-        raise ValidationError("Cannot change project role of a global ADMIN")
+        raise ValidationError(
+            "Нельзя изменить роль в проекте у глобального администратора"
+        )
 
     if role == ProjectRole.ADMIN:
         raise ValidationError(
-            "Only a global ADMIN user can have the ADMIN project role"
+            "Роль ADMIN в проекте можно назначить только глобальному администратору"
         )
 
     if membership.role == ProjectRole.OWNER and role != ProjectRole.OWNER:
@@ -297,7 +299,9 @@ def update_member_role(
         )
 
         if owner_count <= 1:
-            raise LastProjectOwnerError("Cannot demote the last owner")
+            raise LastProjectOwnerError(
+                "Нельзя понизить в роли последнего владельца проекта"
+            )
 
     membership.role = role
 
@@ -327,14 +331,14 @@ def remove_member(
     project = get_active(db, Project, project_id)
 
     if not project:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     require_project_role(db, project, user, ProjectRole.OWNER)
 
     membership = get_membership(db, project_id, member_user_id)
 
     if not membership:
-        raise NotFoundError("Project member not found")
+        raise NotFoundError("Участник проекта не найден")
 
     if membership.role == ProjectRole.OWNER:
         owner_count = (
@@ -344,7 +348,7 @@ def remove_member(
         )
 
         if owner_count <= 1:
-            raise LastProjectOwnerError("Cannot remove the last owner")
+            raise LastProjectOwnerError("Нельзя удалить последнего владельца проекта")
 
     db.delete(membership)
 

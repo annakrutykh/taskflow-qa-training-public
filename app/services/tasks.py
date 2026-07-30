@@ -50,12 +50,12 @@ def create_task(
     project = get_active(db, Project, project_id)
 
     if not project:
-        raise NotFoundError("Project not found")
+        raise NotFoundError("Проект не найден")
 
     require_project_role(db, project, user, ProjectRole.MANAGER)
 
     if assignee_id is not None and not get_active(db, User, assignee_id):
-        raise NotFoundError("Assignee not found")
+        raise NotFoundError("Исполнитель не найден")
 
     task = Task(
         project_id=project_id,
@@ -131,7 +131,7 @@ def list_tasks(
 
     if sort:
         if sort not in sort_fields:
-            raise UnknownSortFieldError("Unknown sort field")
+            raise UnknownSortFieldError("Неизвестное поле сортировки")
 
         column = sort_fields[sort]
 
@@ -181,12 +181,12 @@ def update_task(db: Session, user: User, task_id: int, provided_fields: dict) ->
 
     if disallowed:
         raise ForbiddenError(
-            f"Insufficient rights to modify: {', '.join(sorted(disallowed))}"
+            f"Недостаточно прав для изменения полей: {', '.join(sorted(disallowed))}"
         )
 
     new_assignee_id = provided_fields.get("assignee_id")
     if new_assignee_id is not None and not get_active(db, User, new_assignee_id):
-        raise NotFoundError("Assignee not found")
+        raise NotFoundError("Исполнитель не найден")
 
     for field, value in provided_fields.items():
         setattr(task, field, value)

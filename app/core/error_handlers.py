@@ -45,7 +45,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             content=jsonable_encoder(
                 _error_body(
                     "VALIDATION_ERROR",
-                    "Request validation failed",
+                    "Ошибка валидации запроса",
                     exc.errors(),
                 )
             ),
@@ -57,6 +57,6 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=jsonable_encoder(
-                _error_body("INTERNAL_ERROR", "Internal server error")
+                _error_body("INTERNAL_ERROR", "Внутренняя ошибка сервера")
             ),
         )

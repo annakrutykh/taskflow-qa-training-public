@@ -60,7 +60,7 @@ API использует JWT Bearer Token.
 {
   "error": {
     "code": "NOT_FOUND",
-    "message": "Task not found",
+    "message": "Задача не найдена",
     "details": null,
     "correlationId": "b3c1e2d4-...",
     "timestamp": "2026-07-28T14:20:31.940Z"

@@ -14,7 +14,7 @@ def create_label(db: Session, user: User, name: str) -> Label:
     Бросает: LabelAlreadyExistsError, если метка с таким именем уже есть.
     """
     if db.query(Label).filter_by(name=name).first():
-        raise LabelAlreadyExistsError("Label exists")
+        raise LabelAlreadyExistsError("Метка с таким названием уже существует")
 
     label = Label(name=name)
 
@@ -49,7 +49,7 @@ def attach_label(db: Session, user: User, task_id: int, label_id: int) -> None:
     label = db.get(Label, label_id)
 
     if not label:
-        raise NotFoundError("Label not found")
+        raise NotFoundError("Метка не найдена")
 
     if label not in task.labels:
         task.labels.append(label)
@@ -95,7 +95,7 @@ def delete_label(db: Session, user: User, label_id: int) -> None:
     label = db.get(Label, label_id)
 
     if not label:
-        raise NotFoundError("Label not found")
+        raise NotFoundError("Метка не найдена")
 
     db.delete(label)
 

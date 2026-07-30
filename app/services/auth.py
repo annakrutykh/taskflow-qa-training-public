@@ -37,7 +37,7 @@ def register_user(
     пользователем.
     """
     if db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first():
-        raise EmailAlreadyExistsError("Email exists")
+        raise EmailAlreadyExistsError("Такой email уже зарегистрирован")
 
     user = User(
         email=email,
@@ -69,7 +69,7 @@ def authenticate_user(db: Session, email: str, password: str) -> str:
     user = db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first()
 
     if not user or not user.is_active or not pwd.verify(password, user.password_hash):
-        raise InvalidCredentialsError("Invalid credentials")
+        raise InvalidCredentialsError("Неверный email или пароль")
 
     token = jwt.encode(
         {

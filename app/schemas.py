@@ -48,8 +48,8 @@ class Register(BaseModel):
             or not re.search(r"\d", value)
         ):
             raise ValueError(
-                "Password must contain at least one lowercase letter, "
-                "one uppercase letter and one digit"
+                "Пароль должен содержать хотя бы одну строчную букву, "
+                "одну заглавную букву и одну цифру"
             )
         return value
 
