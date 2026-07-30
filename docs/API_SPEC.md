@@ -228,7 +228,7 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 `sort` ∈ `{createdAt, priority, rating, title, status}`, `order` ∈ `{asc, desc}`.
 
 `TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), rating (1–5, опционально), assigneeId (опционально, должен существовать)`.
-`TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, rating` — доступное подмножество зависит от роли вызывающего (см. выше).
+`TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, rating, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
 `TaskResponse`: `id, projectId, assigneeId, title, description, status, priority, rating, labels: LabelResponse[]`.
 
 ### 6.5 Comments

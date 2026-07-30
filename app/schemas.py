@@ -106,6 +106,7 @@ class TaskUpdate(BaseModel):
         ge=1,
         le=5,
     )
+    assignee_id: int | None = Field(default=None, alias="assigneeId")
 
 
 class CommentCreate(BaseModel):

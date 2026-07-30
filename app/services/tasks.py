@@ -158,16 +158,24 @@ def get_task(db: Session, user: User, task_id: int) -> Task:
 
 def update_task(db: Session, user: User, task_id: int, provided_fields: dict) -> Task:
     """Обновляет переданное подмножество полей задачи в рамках уровня доступа
-    вызывающего (MANAGER+ — любые поля, ASSIGNEE — только status).
+    вызывающего (MANAGER+ — любые поля, включая переназначение исполнителя;
+    ASSIGNEE — только status).
 
-    Бросает: NotFoundError, ForbiddenError (в т.ч. при попытке изменить
-    поле вне разрешённого набора).
+    Бросает: NotFoundError (задача, либо новый исполнитель не найден),
+    ForbiddenError (в т.ч. при попытке изменить поле вне разрешённого набора).
     """
     task = get_accessible_task(db, task_id, user)
     access = get_task_access(db, task, user)
 
     if access == TaskAccess.MANAGER:
-        allowed_fields = {"title", "description", "status", "priority", "rating"}
+        allowed_fields = {
+            "title",
+            "description",
+            "status",
+            "priority",
+            "rating",
+            "assignee_id",
+        }
     elif access == TaskAccess.ASSIGNEE:
         allowed_fields = {"status"}
     else:
@@ -179,6 +187,10 @@ def update_task(db: Session, user: User, task_id: int, provided_fields: dict) ->
         raise ForbiddenError(
             f"Insufficient rights to modify: {', '.join(sorted(disallowed))}"
         )
+
+    new_assignee_id = provided_fields.get("assignee_id")
+    if new_assignee_id is not None and not get_active(db, User, new_assignee_id):
+        raise NotFoundError("Assignee not found")
 
     for field, value in provided_fields.items():
         setattr(task, field, value)

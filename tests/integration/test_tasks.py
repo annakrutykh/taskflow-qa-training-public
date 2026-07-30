@@ -197,6 +197,74 @@ class TestUpdateTask:
         assert resp.status_code == 200
         assert resp.json()["rating"] is None
 
+    def test_manager_can_reassign(self, client):
+        owner = register_and_login(client)
+        first_assignee = register_and_login(client)
+        second_assignee = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        task = create_task(
+            client,
+            owner["token"],
+            project_id,
+            assigneeId=first_assignee["user"]["id"],
+        )
+
+        resp = client.patch(
+            f"/api/v1/tasks/{task['id']}",
+            json={"assigneeId": second_assignee["user"]["id"]},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["assigneeId"] == second_assignee["user"]["id"]
+
+    def test_manager_can_unassign(self, client):
+        owner = register_and_login(client)
+        assignee = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        task = create_task(
+            client, owner["token"], project_id, assigneeId=assignee["user"]["id"]
+        )
+
+        resp = client.patch(
+            f"/api/v1/tasks/{task['id']}",
+            json={"assigneeId": None},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["assigneeId"] is None
+
+    def test_reassign_to_nonexistent_user_is_not_found(self, client):
+        owner = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        task = create_task(client, owner["token"], project_id)
+
+        resp = client.patch(
+            f"/api/v1/tasks/{task['id']}",
+            json={"assigneeId": 999999999},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 404
+
+    def test_assignee_without_membership_cannot_reassign(self, client):
+        owner = register_and_login(client)
+        assignee = register_and_login(client)
+        other = register_and_login(client)
+        project_id = create_project(client, owner["token"])
+        task = create_task(
+            client, owner["token"], project_id, assigneeId=assignee["user"]["id"]
+        )
+
+        resp = client.patch(
+            f"/api/v1/tasks/{task['id']}",
+            json={"assigneeId": other["user"]["id"]},
+            headers=auth_headers(assignee["token"]),
+        )
+
+        assert resp.status_code == 403
+
 
 class TestDeleteTask:
     def test_manager_can_delete(self, client):
