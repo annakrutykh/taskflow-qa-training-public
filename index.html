@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>TaskFlow — макеты веб-клиента</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- rev: sharing fix -->
+
+<style>
+  /* ==========================================================================
+     Токены — 1:1 взяты из web/src/styles/tokens.css ("Amber Ledger"),
+     чтобы макеты были действительно близки к реальному виду приложения.
+     Шрифты — Fraunces / IBM Plex Sans / IBM Plex Mono в оригинале; здесь
+     заменены на системные аналоги той же природы (серифный дисплейный /
+     гуманистический гротеск / моно), т.к. вебфонты нельзя подключить извне.
+     Только светлая тема — как и в самом приложении (тёмной темы там нет).
+     ========================================================================== */
+  :root {
+    --color-bg: #faf7f0;
+    --color-bg-elevated: #f2eee2;
+    --color-bg-input: #ffffff;
+    --color-bg-input-focus: #fffdf8;
+    --color-border: #e4ddcc;
+    --color-border-strong: #d1c8b2;
+    --color-border-focus: #c1611f;
+    --color-text: #211d15;
+    --color-text-muted: #6c6656;
+    --color-text-faint: #a49c85;
+    --color-accent: #c1611f;
+    --color-accent-strong: #9c4d16;
+    --color-accent-dim: rgba(193, 97, 31, 0.1);
+    --color-accent-border: rgba(193, 97, 31, 0.35);
+    --color-on-accent: #fdf9f0;
+    --color-error: #b23a26;
+    --color-error-dim: rgba(178, 58, 38, 0.08);
+    --color-success: #2f7d52;
+    --color-success-dim: rgba(47, 125, 82, 0.08);
+    --color-warning: #a9700f;
+    --color-warning-soft: #f7ecd9;
+    --color-info: #3d6f8f;
+    --color-info-soft: #e8eff2;
+
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
+
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.8125rem;
+    --fs-base: 0.9375rem;
+    --fs-md: 1.0625rem;
+    --fs-lg: 1.375rem;
+    --fs-xl: 2rem;
+    --fs-2xl: 2.75rem;
+    --fs-3xl: 3.4rem;
+
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+    --space-12: 48px; --space-16: 64px;
+
+    --radius-sm: 4px; --radius-md: 8px; --radius-lg: 14px; --radius-full: 999px;
+    --shadow-sm: 0 1px 2px rgba(33, 29, 21, 0.07);
+    --shadow-md: 0 4px 10px -2px rgba(33, 29, 21, 0.09), 0 2px 4px -2px rgba(33, 29, 21, 0.07);
+    --shadow-lg: 0 20px 32px -8px rgba(33, 29, 21, 0.16), 0 6px 10px -4px rgba(33, 29, 21, 0.09);
+    --shadow-accent: 0 8px 20px -4px rgba(193, 97, 31, 0.35);
+
+    /* Аннотационный слой макетов (не часть реального UI) — синеватый, чтобы
+       никогда не путаться с терракотовым accent самого приложения. */
+    --qa-ink: #2c5877;
+    --qa-bg: #eaf1f6;
+    --qa-border: #b9d2e0;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--color-bg-elevated);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; color: inherit; }
+  a { color: inherit; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* ---------- Каркас макетов (не часть приложения) ---------- */
+
+  .mock-shell { display: flex; min-height: 100vh; }
+
+  .mock-nav {
+    width: 248px;
+    flex-shrink: 0;
+    background: var(--color-bg-input);
+    border-right: 1px solid var(--color-border);
+    padding: var(--space-6) var(--space-4);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .mock-nav__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    margin-bottom: var(--space-1);
+  }
+
+  .mock-nav__subtitle {
+    font-size: var(--fs-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-6);
+    line-height: 1.5;
+  }
+
+  .mock-nav__group {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-faint);
+    margin: var(--space-5) 0 var(--space-2);
+  }
+  .mock-nav__group:first-of-type { margin-top: 0; }
+
+  .mock-nav__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--fs-sm);
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+  }
+  .mock-nav__item:hover { background: var(--color-bg); color: var(--color-text); }
+  .mock-nav__item[aria-current="true"] {
+    background: var(--color-accent-dim);
+    color: var(--color-accent-strong);
+    font-weight: 600;
+  }
+
+  .mock-nav__legend {
+    margin-top: var(--space-8);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--fs-xs);
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+  .mock-nav__legend b { color: var(--color-text); }
+  .mock-nav__legend-title { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-faint); margin-bottom: var(--space-3); }
+  .legend-item { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-4); }
+  .legend-item__demo { display: flex; }
+  .legend-item__text { font-size: 0.72rem; line-height: 1.5; }
+
+  .mock-main { flex: 1; min-width: 0; padding: var(--space-8); }
+
+  .mock-frame {
+    max-width: 1180px;
+    margin: 0 auto;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .mock-frame__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .mock-frame__dots { display: flex; gap: 6px; }
+  .mock-frame__dots span {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--color-border-strong);
+  }
+  .mock-frame__url {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--color-text-muted);
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: var(--space-1) var(--space-4);
+    flex: 1;
+  }
+
+  .mock-persona {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--qa-ink);
+    background: var(--qa-bg);
+    border: 1px solid var(--qa-border);
+    border-radius: var(--radius-full);
+    padding: var(--space-1) var(--space-3);
+    margin: var(--space-4) var(--space-6) 0;
+  }
+  .mock-persona b { font-weight: 700; }
+
+  .mock-note {
+    margin: var(--space-3) var(--space-6) 0;
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    font-size: var(--fs-xs);
+    color: var(--qa-ink);
+    background: var(--qa-bg);
+    border: 1px dashed var(--qa-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    line-height: 1.55;
+  }
+  .mock-note__mark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Аннотация "элемент зависит от роли" — оборачивает реальный контрол. */
+  .qa-gate {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    outline: 1.5px dashed var(--qa-border);
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+  }
+  .qa-gate__tag {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+    color: var(--qa-ink);
+    background: var(--qa-bg);
+    border: 1px solid var(--qa-border);
+    border-radius: var(--radius-full);
+    padding: 1px var(--space-2);
+    white-space: nowrap;
+  }
+
+  .screen { display: none; }
+  .screen[aria-current="true"] { display: block; }
+
+  /* ---------- Компоненты приложения (faithful copy) ---------- */
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    height: 38px; padding: 0 var(--space-4); border-radius: var(--radius-md);
+    border: 1px solid transparent; font-size: var(--fs-sm); font-weight: 600;
+  }
+  .btn--sm { height: 32px; padding: 0 var(--space-3); font-size: var(--fs-xs); }
+  .btn--primary { background: var(--color-accent); color: var(--color-on-accent); }
+  .btn--secondary { background: var(--color-bg-input); color: var(--color-text); border-color: var(--color-border-strong); }
+  .btn--ghost { background: transparent; color: var(--color-text-muted); }
+  .btn--danger { background: var(--color-error); color: #fff; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: var(--space-1);
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius-full);
+    font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 500; white-space: nowrap;
+  }
+  .badge--neutral { background: var(--color-bg); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+  .badge--accent { background: var(--color-accent-dim); color: var(--color-accent); }
+  .badge--success { background: var(--color-success-dim); color: var(--color-success); }
+  .badge--warning { background: var(--color-warning-soft); color: var(--color-warning); }
+  .badge--danger { background: var(--color-error-dim); color: var(--color-error); }
+
+  .table-wrap { background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .table { font-size: var(--fs-sm); }
+  .table thead th { text-align: left; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-weight: 500; color: var(--color-text-muted); background: var(--color-bg); border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+  .table tbody td { padding: var(--space-4); border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+  .table tbody tr:last-child td { border-bottom: none; }
+
+  .field { margin-bottom: var(--space-5); }
+  .field__label { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: 0.03em; color: var(--color-text-muted); margin-bottom: var(--space-2); }
+  .field__input-wrap { position: relative; }
+  .field__input {
+    width: 100%; background: var(--color-bg-input); border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--fs-base); color: var(--color-text);
+  }
+  .field__input:disabled { background: var(--color-bg); color: var(--color-text-faint); border-color: var(--color-border); }
+  .field--invalid .field__input { border-color: var(--color-error); }
+  .field--valid .field__input { border-color: var(--color-success); }
+  .field__error { display: block; margin-top: var(--space-2); font-size: var(--fs-xs); color: var(--color-error); }
+  .field__hint { display: block; margin-top: var(--space-2); font-size: var(--fs-xs); color: var(--color-text-faint); }
+  .field__strength { color: var(--color-text-faint); }
+  .field__strength[data-level='fair'] { color: var(--color-accent); }
+  .form-banner { display: flex; gap: var(--space-2); background: var(--color-error-dim); border: 1px solid var(--color-error); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--fs-sm); color: var(--color-error); margin-bottom: var(--space-5); }
+  .form-submit { width: 100%; background: var(--color-accent); color: var(--color-on-accent); border: none; border-radius: var(--radius-md); padding: var(--space-4); font-size: var(--fs-base); font-weight: 600; margin-top: var(--space-2); }
+
+  .card { background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+  .card--padded { padding: var(--space-6); }
+
+  /* Карта переходов — простая блок-схема на HTML/CSS (без mermaid.js:
+     нативный рендер mermaid работает только внутри артефактов claude.ai,
+     а этот же файл должен открываться и как обычный самостоятельный HTML). */
+  .flowmap { display: flex; flex-direction: column; gap: var(--space-5); }
+  .flowmap__block { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); background: var(--color-bg); }
+  .flowmap__source {
+    display: inline-flex; align-items: center;
+    background: var(--color-accent); color: var(--color-on-accent);
+    font-weight: 700; font-size: var(--fs-sm);
+    padding: var(--space-1) var(--space-4); border-radius: var(--radius-full);
+    margin-bottom: var(--space-3);
+  }
+  .flowmap__source--entry { background: var(--color-text-faint); }
+  .flowmap__transition { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2) 0; font-size: var(--fs-sm); }
+  .flowmap__transition + .flowmap__transition { border-top: 1px dashed var(--color-border); }
+  .flowmap__cond { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-text-muted); background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-full); padding: 2px 10px; }
+  .flowmap__cond--dashed { border-style: dashed; color: var(--color-accent-strong); }
+  .flowmap__arrow-glyph { color: var(--color-text-faint); font-size: 1rem; }
+  .flowmap__target { font-weight: 600; background: var(--color-bg-input); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); padding: 2px 10px; }
+
+  .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-12) var(--space-6); color: var(--color-text-muted); }
+  .empty-state__icon { width: 48px; height: 48px; border-radius: var(--radius-full); background: var(--color-accent-dim); color: var(--color-accent); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .empty-state__title { font-family: var(--font-display); color: var(--color-text); font-weight: 700; font-size: var(--fs-md); }
+  .empty-state__description { font-size: var(--fs-sm); max-width: 32ch; }
+
+  /* App shell (header) */
+  .app-header {
+    height: 64px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 var(--space-6); background: var(--color-bg-input); border-bottom: 1px solid var(--color-border);
+  }
+  .app-header__brand { display: flex; align-items: center; gap: var(--space-6); }
+  .app-header__logo { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-display); font-weight: 700; font-size: var(--fs-md); }
+  .app-header__logo-mark { width: 24px; height: 24px; display: block; box-shadow: var(--shadow-accent); }
+  .app-header__pill {
+    display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-full); border: 1px solid var(--color-border-strong); background: var(--color-bg-input);
+    font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600;
+  }
+  .app-header__pill:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .app-header__pill--active { border-color: var(--color-accent-border); background: var(--color-accent-dim); color: var(--color-accent-strong); }
+  /* Только рамка/текст в покое — без заливки фона, иначе неотличимо от --active. */
+  .app-header__pill--accent { border-color: var(--color-accent-border); color: var(--color-accent-strong); }
+  .app-header__pill--accent.app-header__pill--active { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
+  .app-header__nav-group { display: flex; align-items: center; gap: var(--space-2); }
+  .app-header__user { display: flex; align-items: center; gap: var(--space-3); }
+  .app-header__avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-accent-dim); color: var(--color-accent); display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: 650; }
+  .app-header__name { font-size: var(--fs-sm); font-weight: 600; }
+
+  .app-body { padding: var(--space-8) var(--space-6); }
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+  .page-header h1 { font-size: var(--fs-xl); }
+  .page-subtitle { display: block; font-size: var(--fs-sm); color: var(--color-text-muted); margin-top: var(--space-1); }
+  .section-block { margin-top: var(--space-8); }
+  .section-block__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3); }
+  .section-block__title { font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-muted); }
+
+  .pill-row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: 0.7rem; padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text-muted); }
+
+  .filters-row { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+  .filters-row .field__input { width: auto; min-width: 160px; }
+  .filters-row input.field__input { min-width: 220px; }
+
+  .pagination-row { display: flex; align-items: center; justify-content: center; gap: var(--space-4); margin-top: var(--space-4); font-size: var(--fs-xs); color: var(--color-text-muted); }
+
+  /* Auth shell */
+  .auth-shell { display: grid; grid-template-columns: 1.1fr 1fr; min-height: 640px; }
+  .auth-pitch { position: relative; display: flex; align-items: flex-end; padding: var(--space-12) var(--space-10); overflow: hidden; border-right: 1px solid var(--color-border); background:
+    radial-gradient(ellipse 60% 50% at 20% 100%, var(--color-accent-dim), transparent 70%),
+    var(--color-bg); }
+  .auth-pitch__content { max-width: 420px; }
+  .auth-pitch__eyebrow { display: inline-block; font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent); margin-bottom: var(--space-5); }
+  .auth-pitch__title { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-2xl); line-height: 1.05; letter-spacing: -0.01em; margin-bottom: var(--space-5); }
+  .auth-pitch__subtitle { font-size: var(--fs-md); color: var(--color-text-muted); line-height: 1.6; margin-bottom: var(--space-8); max-width: 40ch; }
+  .auth-pitch__meta { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--color-text-faint); }
+  .auth-pitch__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); box-shadow: 0 0 0 3px var(--color-success-dim); }
+  .auth-form-side { display: flex; align-items: center; justify-content: center; padding: var(--space-10); }
+  .auth-card { width: 100%; max-width: 380px; }
+  .form-header { margin-bottom: var(--space-6); }
+  .form-header__title { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 700; margin-bottom: var(--space-2); }
+  .form-header__hint { font-size: var(--fs-sm); color: var(--color-text-muted); }
+  .form-header__hint a { color: var(--color-accent); border-bottom: 1px solid var(--color-accent-border); }
+
+  /* Modal (представлен как самостоятельная карточка на канвасе) */
+  .modal-canvas { display: flex; justify-content: center; padding: var(--space-12) var(--space-6); background:
+    repeating-linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg-elevated) 10px, var(--color-bg) 10px, var(--color-bg) 20px); }
+  .modal { width: 100%; max-width: 480px; background: var(--color-bg-input); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); }
+  .modal__header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-border); }
+  .modal__title { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; }
+  .modal__close { background: none; border: none; color: var(--color-text-faint); width: 26px; height: 26px; border-radius: var(--radius-sm); font-size: 1rem; }
+  .modal__body { padding: var(--space-6); }
+  .modal__footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding: var(--space-5) var(--space-6); border-top: 1px solid var(--color-border); }
+
+  .picker { border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-top: var(--space-2); overflow: hidden; }
+  .picker__item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); font-size: var(--fs-sm); }
+  .picker__item:last-child { border-bottom: none; }
+  .picker__name { font-weight: 600; }
+  .picker__email { color: var(--color-text-faint); font-family: var(--font-mono); font-size: var(--fs-xs); }
+  .picker__selected { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-bg); }
+
+  .label-chip { display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: 0.7rem; padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--color-accent-dim); color: var(--color-accent-strong); }
+  .label-chip--toggle { border: 1px solid var(--color-border-strong); background: var(--color-bg-input); color: var(--color-text-muted); }
+  .label-chip--active { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); }
+
+  .meta-grid { display: grid; grid-template-columns: 120px 1fr; gap: var(--space-3) var(--space-4); font-size: var(--fs-sm); align-items: center; }
+  .meta-grid dt { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--color-text-muted); }
+
+  .comment { padding: var(--space-4) 0; border-bottom: 1px solid var(--color-border); }
+  .comment:last-child { border-bottom: none; }
+  .comment__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2); }
+  .comment__author { font-weight: 600; font-size: var(--fs-sm); }
+  .comment__text { font-size: var(--fs-sm); color: var(--color-text); }
+
+  .admin-tabs { display: inline-flex; gap: var(--space-1); padding: var(--space-1); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-full); margin-bottom: var(--space-6); }
+  .admin-tab { padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 600; color: var(--color-text-muted); }
+  .admin-tab--active { background: var(--color-accent-dim); color: var(--color-accent-strong); }
+
+  .danger-card { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); padding: var(--space-6); border: 1px solid var(--color-error); background: var(--color-error-dim); border-radius: var(--radius-lg); }
+  .danger-card__title { font-weight: 700; margin-bottom: var(--space-1); }
+  .danger-card__desc { font-size: var(--fs-sm); color: var(--color-text-muted); max-width: 52ch; }
+
+  @media (max-width: 960px) {
+    .mock-nav { display: none; }
+    .mock-main { padding: var(--space-4); }
+  }
+
+  /* ---------- Дизайн-система (стиль-гайд) ---------- */
+
+  .ds-block { margin-bottom: var(--space-10); }
+  .ds-block__title { font-size: var(--fs-lg); margin-bottom: var(--space-1); }
+  .ds-block__desc { font-size: var(--fs-sm); color: var(--color-text-muted); margin-bottom: var(--space-5); max-width: 68ch; }
+
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--space-3); }
+  .swatch { display: flex; gap: var(--space-3); align-items: center; background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); }
+  .swatch__chip { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.08); flex-shrink: 0; }
+  .swatch__name { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; }
+  .swatch__hex { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); }
+  .swatch__use { font-size: 0.72rem; color: var(--color-text-muted); margin-top: 2px; line-height: 1.3; }
+
+  .type-row { display: flex; align-items: baseline; gap: var(--space-5); padding: var(--space-4) 0; border-bottom: 1px solid var(--color-border); }
+  .type-row:last-child { border-bottom: none; }
+  .type-row__meta { width: 190px; flex-shrink: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--color-text-muted); line-height: 1.6; }
+  .type-row__meta b { color: var(--color-text); display: block; font-size: var(--fs-sm); }
+  .type-row__sample { flex: 1; min-width: 0; }
+
+  .spec-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+  .spec-table th { text-align: left; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; color: var(--color-text-muted); background: var(--color-bg); border-bottom: 1px solid var(--color-border); }
+  .spec-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); vertical-align: top; }
+  .spec-table tr:last-child td { border-bottom: none; }
+  .spec-table code { font-family: var(--font-mono); font-size: 0.78rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 4px; padding: 1px 5px; }
+
+  .space-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2) 0; }
+  .space-row__label { width: 90px; flex-shrink: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--color-text-muted); }
+  .space-row__bar { height: 14px; background: var(--color-accent); border-radius: 3px; }
+
+  .radius-demo, .shadow-demo { display: flex; gap: var(--space-6); flex-wrap: wrap; }
+  .radius-demo__item, .shadow-demo__item { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  .radius-demo__box { width: 72px; height: 72px; background: var(--color-accent-dim); border: 1.5px solid var(--color-accent-border); }
+  .shadow-demo__box { width: 96px; height: 64px; background: var(--color-bg-input); border-radius: var(--radius-md); }
+  .demo-caption { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); text-align: center; }
+
+  .btn-specimen-row { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
+  .btn-specimen-row:last-child { border-bottom: none; }
+  .btn-specimen-row__label { width: 170px; flex-shrink: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--color-text-muted); }
+
+  /* Кликабельные "горячие точки" — переход между экранами макета, как в
+     реальном приложении. Не часть UI приложения (курсор/подсказка). */
+  .hotspot { cursor: pointer; position: relative; }
+  .hotspot--link { color: var(--color-accent-strong); font-weight: 600; }
+  .hotspot--link:hover { text-decoration: underline; }
+  .hotspot:not(.hotspot--link):hover { outline: 1.5px dashed var(--qa-border); outline-offset: 2px; border-radius: var(--radius-sm); }
+</style>
+</head>
+<body>
+
+<div class="mock-shell">
+  <nav class="mock-nav" aria-label="Экраны">
+    <div class="mock-nav__title">TaskFlow</div>
+    <div class="mock-nav__subtitle">Макеты веб-клиента — эталон для тестировщиков. Полное описание ролей/состояний — <b>docs/WEB_SPEC.md</b>.</div>
+
+    <div class="mock-nav__group">Обзор</div>
+    <button class="mock-nav__item" data-target="flow-map">Карта переходов</button>
+
+    <div class="mock-nav__group">Дизайн-система</div>
+    <button class="mock-nav__item" data-target="ds-colors">Цвета и типографика</button>
+    <button class="mock-nav__item" data-target="ds-components">Отступы и компоненты</button>
+
+    <div class="mock-nav__group">Вход</div>
+    <button class="mock-nav__item" data-target="login">Вход</button>
+    <button class="mock-nav__item" data-target="register">Регистрация</button>
+
+    <div class="mock-nav__group">Проекты</div>
+    <button class="mock-nav__item" data-target="projects-list">Мои проекты</button>
+    <button class="mock-nav__item" data-target="modal-create-project">Модалка · Создать проект</button>
+    <button class="mock-nav__item" data-target="project-detail">Детали проекта</button>
+    <button class="mock-nav__item" data-target="modal-add-member">Модалка · Добавить участника</button>
+
+    <div class="mock-nav__group">Задачи</div>
+    <button class="mock-nav__item" data-target="modal-task">Модалка · Новая задача</button>
+    <button class="mock-nav__item" data-target="task-detail">Карточка задачи</button>
+    <button class="mock-nav__item" data-target="my-tasks">Мои задачи</button>
+
+    <div class="mock-nav__group">Личное</div>
+    <button class="mock-nav__item" data-target="profile">Профиль</button>
+
+    <div class="mock-nav__group">Администрирование</div>
+    <button class="mock-nav__item" data-target="admin-users">Админ · Пользователи</button>
+    <button class="mock-nav__item" data-target="admin-labels">Админ · Метки</button>
+    <button class="mock-nav__item" data-target="admin-maintenance">Админ · Обслуживание</button>
+
+    <div class="mock-nav__legend">
+      <div class="mock-nav__legend-title">Как читать эти макеты</div>
+
+      <div class="legend-item">
+        <div class="legend-item__demo"><div class="mock-frame__bar" style="border-radius:6px; border:1px solid var(--color-border);"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url" style="font-size:0.62rem;">localhost:3000/…</div></div></div>
+        <div class="legend-item__text">Строка сверху каждого макета — это не часть приложения, а условный «браузер»: в адресной строке — реальный маршрут (роут) этого экрана.</div>
+      </div>
+
+      <div class="legend-item">
+        <div class="legend-item__demo"><span class="mock-persona" style="margin:0; font-size:0.62rem;">Как: <b>Имя</b></span></div>
+        <div class="legend-item__text">Пилюля (pill — маленький скруглённый ярлычок) «Как: …» — от чьего лица показан экран. В приложении с ролевой моделью один и тот же экран выглядит по-разному для разных пользователей — важно, кто именно смотрит.</div>
+      </div>
+
+      <div class="legend-item">
+        <div class="legend-item__demo"><span class="qa-gate" style="outline-offset:2px; padding: 2px 6px;"><span style="font-size:0.62rem;">Кнопка</span><span class="qa-gate__tag">РОЛЬ</span></span></div>
+        <div class="legend-item__text">Пунктирная рамка + синий тег у элемента — этот элемент виден/активен не всем ролям. Текст тега — какой роли он доступен (например, «MANAGER+/ADMIN» — знак «+» значит «эта роль и выше»: роли в проекте по возрастанию прав — VIEWER (наблюдатель) → MANAGER (менеджер) → OWNER (владелец)). Без рамки — элемент виден всем, у кого есть доступ к экрану вообще.</div>
+      </div>
+
+      <div class="legend-item">
+        <div class="legend-item__demo"><div class="mock-note" style="margin:0; padding: var(--space-2) var(--space-3); font-size:0.62rem;"><span class="mock-note__mark">Note:</span> текст</div></div>
+        <div class="legend-item__text">Блок с пунктирной рамкой под макетом — пояснение о состояниях, которые не показаны на самом макете (пустой список, ошибка, граничный случай) — что должно быть, когда это встретится.</div>
+      </div>
+
+      <div class="legend-item">
+        <div class="legend-item__demo"><span style="display:inline-flex; align-items:center; gap:4px; font-size:var(--fs-xs); color:var(--color-accent-strong); cursor:pointer;">👆 <u>кликабельно</u></span></div>
+        <div class="legend-item__text">Курсор-«рука» и подчёркивание — по такому элементу можно кликнуть прямо в макете, чтобы перейти на связанный экран (как в реальном приложении). Всё остальное — статичная иллюстрация.</div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="mock-main">
+
+    <!-- ============================ КАРТА ПЕРЕХОДОВ ============================ -->
+    <section class="screen" data-screen="flow-map">
+      <div class="ds-block">
+        <h1 class="ds-block__title">Карта переходов между экранами</h1>
+        <p class="ds-block__desc">С каких действий на каком экране можно попасть на какой следующий. Пунктирные связи в шапке (📁/🗂️/⚙/аватар) доступны с любого авторизованного экрана всегда — не только показанные здесь. Элементы с курсором-«рукой» в остальных макетах кликабельны и ведут по этой же карте.</p>
+      </div>
+      <div class="flowmap">
+
+        <div class="flowmap__block">
+          <div class="flowmap__source flowmap__source--entry">Вход / Регистрация</div>
+          <div class="flowmap__transition">
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Мои проекты</span>
+          </div>
+        </div>
+
+        <div class="flowmap__block">
+          <div class="flowmap__source">Мои проекты</div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond">«Создать проект»</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Модалка: Создать проект</span>
+            <span class="flowmap__arrow-glyph">→ успех →</span>
+            <span class="flowmap__target">Детали проекта</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond">клик по названию</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Детали проекта</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond flowmap__cond--dashed">шапка, всегда</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Мои задачи</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond flowmap__cond--dashed">шапка, всегда</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Профиль</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond flowmap__cond--dashed">шапка, только ADMIN</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Админка</span>
+          </div>
+        </div>
+
+        <div class="flowmap__block">
+          <div class="flowmap__source">Детали проекта</div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond">«Добавить участника»</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Модалка: Добавить участника</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond">«Создать / изменить задачу»</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Модалка: Задача</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond">клик по задаче</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Карточка задачи</span>
+          </div>
+        </div>
+
+        <div class="flowmap__block">
+          <div class="flowmap__source">Мои задачи</div>
+          <div class="flowmap__transition">
+            <span class="flowmap__cond">клик по задаче</span>
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Карточка задачи</span>
+          </div>
+        </div>
+
+        <div class="flowmap__block">
+          <div class="flowmap__source">Админка</div>
+          <div class="flowmap__transition">
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Вкладка: Пользователи</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Вкладка: Метки</span>
+          </div>
+          <div class="flowmap__transition">
+            <span class="flowmap__arrow-glyph">→</span>
+            <span class="flowmap__target">Вкладка: Обслуживание</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="mock-note" style="margin-left:0; margin-right:0;"><span class="mock-note__mark">Не показано на карте:</span> «Мои задачи» и «Профиль» тоже открываются кликом по соответствующим пилюлям (pill — маленьким скруглённым кнопкам-ярлычкам)/аватару в шапке с любого экрана — здесь это не дублировано отдельными стрелками ради читаемости.</div>
+    </section>
+
+    <!-- ============================ ДИЗАЙН-СИСТЕМА: ЦВЕТА И ТИПОГРАФИКА ============================ -->
+    <section class="screen" data-screen="ds-colors">
+      <div class="ds-block">
+        <h1 class="ds-block__title">Дизайн-система — «Amber Ledger»</h1>
+        <p class="ds-block__desc">Точные значения из <code style="font-family:var(--font-mono); font-size:0.82em; background:var(--color-bg); border:1px solid var(--color-border); border-radius:4px; padding:1px 5px;">web/src/styles/tokens.css</code> — реальные CSS-переменные (design-токены — именованные значения стиля, которые переиспользуются во всех компонентах вместо «зашитых» чисел/цветов) приложения, не приближение. Имена вида <code style="font-family:var(--font-mono); font-size:0.82em;">--color-bg</code> — это буквально то же самое имя, что в коде: их можно найти в DevTools браузера (вкладка Elements → Styles/Computed) при проверке реального приложения. Если в приложении цвет/размер не совпадает с указанным здесь — это расхождение, достойное багрепорта.</p>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Поверхности и границы</h2>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-bg);"></div><div><div class="swatch__name">--color-bg</div><div class="swatch__hex">#faf7f0</div><div class="swatch__use">Фон страницы</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-bg-elevated);"></div><div><div class="swatch__name">--color-bg-elevated</div><div class="swatch__hex">#f2eee2</div><div class="swatch__use">Приподнятый фон (шапки таблиц)</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-bg-input);"></div><div><div class="swatch__name">--color-bg-input</div><div class="swatch__hex">#ffffff</div><div class="swatch__use">Поля, карточки, модалки, таблицы</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-bg-input-focus);"></div><div><div class="swatch__name">--color-bg-input-focus</div><div class="swatch__hex">#fffdf8</div><div class="swatch__use">Фон поля в фокусе</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-border);"></div><div><div class="swatch__name">--color-border</div><div class="swatch__hex">#e4ddcc</div><div class="swatch__use">Обычная граница (карточки, разделители)</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-border-strong);"></div><div><div class="swatch__name">--color-border-strong</div><div class="swatch__hex">#d1c8b2</div><div class="swatch__use">Граница полей ввода, кнопки secondary</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-border-focus);"></div><div><div class="swatch__name">--color-border-focus</div><div class="swatch__hex">#c1611f</div><div class="swatch__use">Граница поля в фокусе</div></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Текст</h2>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-text);"></div><div><div class="swatch__name">--color-text</div><div class="swatch__hex">#211d15</div><div class="swatch__use">Основной текст</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-text-muted);"></div><div><div class="swatch__name">--color-text-muted</div><div class="swatch__hex">#6c6656</div><div class="swatch__use">Второстепенный текст, подписи</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-text-faint);"></div><div><div class="swatch__name">--color-text-faint</div><div class="swatch__hex">#a49c85</div><div class="swatch__use">Плейсхолдеры, disabled-текст</div></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Акцент (терракотовый — единственный цветовой акцент приложения)</h2>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-accent);"></div><div><div class="swatch__name">--color-accent</div><div class="swatch__hex">#c1611f</div><div class="swatch__use">Primary-кнопки (главное действие на экране), ссылки, активные пилюли (pill — маленькие скруглённые кнопки-ярлычки, например вкладки в шапке)</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-accent-strong);"></div><div><div class="swatch__name">--color-accent-strong</div><div class="swatch__hex">#9c4d16</div><div class="swatch__use">Hover у primary, сильный текст на dim-фоне</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-accent-dim);"></div><div><div class="swatch__name">--color-accent-dim</div><div class="swatch__hex">rgba(193,97,31,.1)</div><div class="swatch__use">Фон бейджей/пилюль-акцентов</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-on-accent); border-color:var(--color-border-strong);"></div><div><div class="swatch__name">--color-on-accent</div><div class="swatch__hex">#fdf9f0</div><div class="swatch__use">Текст на акцентном фоне (кнопка primary)</div></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Семантика (статусы, приоритеты, ошибки)</h2>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-success);"></div><div><div class="swatch__name">--color-success</div><div class="swatch__hex">#2f7d52</div><div class="swatch__use">«Активен», успешные тосты/бейджи</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-warning);"></div><div><div class="swatch__name">--color-warning</div><div class="swatch__hex">#a9700f</div><div class="swatch__use">Приоритет «Средний», статус «В работе»</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-error);"></div><div><div class="swatch__name">--color-error</div><div class="swatch__hex">#b23a26</div><div class="swatch__use">Ошибки, danger-кнопки, приоритет «Высокий»</div></div></div>
+          <div class="swatch"><div class="swatch__chip" style="background:var(--color-info);"></div><div><div class="swatch__name">--color-info</div><div class="swatch__hex">#3d6f8f</div><div class="swatch__use">Иконка info-тоста (toast — всплывающее уведомление в углу экрана; badge-варианта с этим цветом нет)</div></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Шрифты</h2>
+        <p class="ds-block__desc">Три роли, без исключений: заголовки — Fraunces, весь обычный текст — IBM Plex Sans, ярлыки/бейджи/моно-данные — IBM Plex Mono. Здесь показаны системными аналогами (вебфонты не подключаются в артефакте) — пропорции и роли те же, конкретное начертание в приложении будет другим.</p>
+        <div>
+          <div class="type-row"><div class="type-row__meta"><b>Fraunces</b>display / заголовки h1–h3, названия модалок и карточек, вес 500–700</div><div class="type-row__sample" style="font-family:var(--font-display); font-size:var(--fs-xl); font-weight:700;">TaskFlow Backend</div></div>
+          <div class="type-row"><div class="type-row__meta"><b>IBM Plex Sans</b>body / весь обычный текст, кнопки, поля, вес 400–600</div><div class="type-row__sample" style="font-family:var(--font-body); font-size:var(--fs-base);">Разработка backend сервиса</div></div>
+          <div class="type-row"><div class="type-row__meta"><b>IBM Plex Mono</b>mono / лейблы полей, бейджи, шапки таблиц, nav-пилюли, email</div><div class="type-row__sample" style="font-family:var(--font-mono); font-size:var(--fs-sm);">anna@example.com · ВЫСОКИЙ</div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Кегли (кегль — типографский термин, означает размер шрифта; шкала)</h2>
+        <table class="spec-table">
+          <thead><tr><th>Токен</th><th>Значение</th><th>Где встречается</th><th>Образец</th></tr></thead>
+          <tbody>
+            <tr><td><code>--fs-xs</code></td><td>12px / 0.75rem</td><td>Бейджи, лейблы полей, шапки таблиц</td><td style="font-size:var(--fs-xs);">Пример текста</td></tr>
+            <tr><td><code>--fs-sm</code></td><td>13px / 0.8125rem</td><td>Кнопки, ячейки таблиц, подписи</td><td style="font-size:var(--fs-sm);">Пример текста</td></tr>
+            <tr><td><code>--fs-base</code></td><td>15px / 0.9375rem</td><td>Базовый текст, поля ввода</td><td style="font-size:var(--fs-base);">Пример текста</td></tr>
+            <tr><td><code>--fs-md</code></td><td>17px / 1.0625rem</td><td>h3, заголовки модалок</td><td style="font-size:var(--fs-md);">Пример текста</td></tr>
+            <tr><td><code>--fs-lg</code></td><td>22px / 1.375rem</td><td>h2</td><td style="font-size:var(--fs-lg); font-family:var(--font-display);">Пример текста</td></tr>
+            <tr><td><code>--fs-xl</code></td><td>32px / 2rem</td><td>h1 (заголовок страницы)</td><td style="font-size:var(--fs-xl); font-family:var(--font-display); font-weight:700;">Пример</td></tr>
+            <tr><td><code>--fs-2xl</code> / <code>--fs-3xl</code></td><td>44px / 60px</td><td>Только заголовок на экранах входа/регистрации</td><td style="font-family:var(--font-display); font-weight:700; font-size:var(--fs-2xl);">Пример</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================ ДИЗАЙН-СИСТЕМА: ОТСТУПЫ И КОМПОНЕНТЫ ============================ -->
+    <section class="screen" data-screen="ds-components">
+      <div class="ds-block">
+        <h1 class="ds-block__title">Отступы, радиусы, компоненты</h1>
+        <p class="ds-block__desc">Шаг сетки — 4px, все отступы приложения кратны ему. Ниже — фактические размеры интерактивных элементов, чтобы можно было сверить пиксели, а не только цвет.</p>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Шкала отступов (4px база)</h2>
+        <div>
+          <div class="space-row"><span class="space-row__label">space-1 — 4px</span><div class="space-row__bar" style="width:4px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-2 — 8px</span><div class="space-row__bar" style="width:8px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-3 — 12px</span><div class="space-row__bar" style="width:12px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-4 — 16px</span><div class="space-row__bar" style="width:16px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-5 — 20px</span><div class="space-row__bar" style="width:20px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-6 — 24px</span><div class="space-row__bar" style="width:24px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-8 — 32px</span><div class="space-row__bar" style="width:32px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-10 — 40px</span><div class="space-row__bar" style="width:40px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-12 — 48px</span><div class="space-row__bar" style="width:48px;"></div></div>
+          <div class="space-row"><span class="space-row__label">space-16 — 64px</span><div class="space-row__bar" style="width:64px;"></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Радиусы скругления</h2>
+        <div class="radius-demo">
+          <div class="radius-demo__item"><div class="radius-demo__box" style="border-radius:var(--radius-sm);"></div><span class="demo-caption">sm — 4px<br />чипы меток (chip — маленькая прямоугольная плашка с текстом)</span></div>
+          <div class="radius-demo__item"><div class="radius-demo__box" style="border-radius:var(--radius-md);"></div><span class="demo-caption">md — 8px<br />кнопки, поля</span></div>
+          <div class="radius-demo__item"><div class="radius-demo__box" style="border-radius:var(--radius-lg);"></div><span class="demo-caption">lg — 14px<br />карточки, таблицы, модалки</span></div>
+          <div class="radius-demo__item"><div class="radius-demo__box" style="border-radius:var(--radius-full); width:64px;"></div><span class="demo-caption">full — 999px<br />бейджи, аватар, nav-пилюли</span></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Тени</h2>
+        <div class="shadow-demo">
+          <div class="shadow-demo__item"><div class="shadow-demo__box" style="box-shadow:var(--shadow-sm);"></div><span class="demo-caption">shadow-sm<br />таблицы, карточки в покое</span></div>
+          <div class="shadow-demo__item"><div class="shadow-demo__box" style="box-shadow:var(--shadow-md);"></div><span class="demo-caption">shadow-md<br />карточка при hover</span></div>
+          <div class="shadow-demo__item"><div class="shadow-demo__box" style="box-shadow:var(--shadow-lg);"></div><span class="demo-caption">shadow-lg<br />модальные окна</span></div>
+          <div class="shadow-demo__item"><div class="shadow-demo__box" style="box-shadow:var(--shadow-focus); border:1px solid var(--color-border-focus);"></div><span class="demo-caption">focus ring<br />поле в фокусе, 3px</span></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Кнопки — размеры и варианты</h2>
+        <p class="ds-block__desc">Четыре варианта по важности действия: <b>Primary</b> (основное/главное действие на экране, заметная заливка) → <b>Secondary</b> (второстепенное, с рамкой) → <b>Ghost</b> (призрачная — почти невидимая до наведения, для некритичных действий вроде «Изменить») → <b>Danger</b> (опасное действие — удаление, красная).</p>
+
+        <table class="spec-table" style="margin-bottom:var(--space-5);">
+          <thead><tr><th>Вариант</th><th>Где встречается в макетах (примеры)</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><button class="btn btn--primary btn--sm" style="pointer-events:none;">Primary</button></td>
+              <td>Главное действие экрана — обычно одно на страницу: «Создать проект», «Создать задачу», «Добавить» (участника/пользователя), «Отправить» (комментарий), «Сохранить» (профиль). На экранах входа/регистрации это визуально тот же акцентный цвет, но своя кнопка на всю ширину — «Войти» / «Создать аккаунт».</td>
+            </tr>
+            <tr>
+              <td><button class="btn btn--secondary btn--sm" style="pointer-events:none;">Secondary</button></td>
+              <td>Действие рядом с primary, но не главное: «Отмена» в модалках, «Редактировать» (проект), «Назад»/«Вперёд» в пагинации.</td>
+            </tr>
+            <tr>
+              <td><button class="btn btn--ghost btn--sm" style="pointer-events:none;">Ghost</button></td>
+              <td>Некритичные, «тихие» действия — обычно в строке таблицы: «Изменить»/«Удалить» у задачи и участника, «Изменить»/«Удалить» у комментария, «Деактивировать»/«Активировать» пользователя (админка), «Выйти» в шапке.</td>
+            </tr>
+            <tr>
+              <td><button class="btn btn--danger btn--sm" style="pointer-events:none;">Danger</button></td>
+              <td>Только необратимые/опасные действия, двумя разными способами: (1) отдельная модалка подтверждения с кнопкой «Удалить» — так устроено удаление проекта, участника, задачи; (2) кнопка меняет текст прямо на месте, без модалки — «Удалить» → «Точно удалить?» + «Отмена» — так устроено удаление метки и комментария. Кнопка «Сбросить БД» — тоже Danger, со своим двухшаговым подтверждением («Точно сбросить всё?»). Обычная (неопасная) кнопка «Удалить» в строке таблицы, до подтверждения — Ghost (см. выше).</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="btn-specimen-row"><span class="btn-specimen-row__label">Обычная — 38px</span><button class="btn btn--primary">Primary</button><button class="btn btn--secondary">Secondary</button><button class="btn btn--ghost">Ghost</button><button class="btn btn--danger">Danger</button></div>
+        <div class="btn-specimen-row"><span class="btn-specimen-row__label">Малая (sm) — 32px</span><button class="btn btn--primary btn--sm">Primary</button><button class="btn btn--secondary btn--sm">Secondary</button><button class="btn btn--ghost btn--sm">Ghost</button><button class="btn btn--danger btn--sm">Danger</button></div>
+        <div class="btn-specimen-row"><span class="btn-specimen-row__label">Disabled (недоступна для нажатия) — opacity (непрозрачность) 0.5</span><button class="btn btn--primary" disabled>Primary</button><button class="btn btn--secondary" disabled>Secondary</button></div>
+        <table class="spec-table" style="margin-top:var(--space-4);">
+          <thead><tr><th>Параметр</th><th>Обычная</th><th>Малая (--sm)</th></tr></thead>
+          <tbody>
+            <tr><td>Высота</td><td>38px</td><td>32px</td></tr>
+            <tr><td>Паддинг по горизонтали</td><td>16px</td><td>12px</td></tr>
+            <tr><td>Радиус</td><td colspan="2">8px (md)</td></tr>
+            <tr><td>Шрифт</td><td>13px / 600</td><td>12px / 600</td></tr>
+            <tr><td>Граница</td><td colspan="2">1px — только у secondary (--color-border-strong)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Бейджи (badge — небольшой цветной ярлык-пилюля со статусом/ролью/значением)</h2>
+        <div class="pill-row" style="margin-bottom:var(--space-4);">
+          <span class="badge badge--neutral">Наблюдатель</span>
+          <span class="badge badge--accent">Владелец</span>
+          <span class="badge badge--success">Активен</span>
+          <span class="badge badge--warning">Средний</span>
+          <span class="badge badge--danger">Высокий</span>
+        </div>
+        <table class="spec-table">
+          <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
+          <tbody>
+            <tr><td>Паддинг</td><td>4px по вертикали, 12px по горизонтали</td></tr>
+            <tr><td>Радиус</td><td>999px (full — форма пилюли, не прямоугольник)</td></tr>
+            <tr><td>Шрифт</td><td>IBM Plex Mono, 12px, вес 500</td></tr>
+            <tr><td>neutral / accent / success / warning / danger</td><td>каждый вариант — свой цвет текста + мягкий (10% непрозрачности) фон того же цвета</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Поля ввода</h2>
+        <div style="max-width:360px; margin-bottom:var(--space-4);">
+          <div class="field"><label class="field__label">Обычное</label><div class="field__input-wrap"><input class="field__input" placeholder="Плейсхолдер" /></div></div>
+          <div class="field field--invalid"><label class="field__label">Ошибка</label><div class="field__input-wrap"><input class="field__input" value="некорректно" /></div><span class="field__error">Текст ошибки под полем</span></div>
+          <div class="field"><label class="field__label">Disabled</label><div class="field__input-wrap"><input class="field__input" value="только чтение" disabled /></div></div>
+        </div>
+        <table class="spec-table">
+          <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
+          <tbody>
+            <tr><td>Паддинг</td><td>12px по вертикали, 16px по горизонтали</td></tr>
+            <tr><td>Радиус</td><td>8px (md)</td></tr>
+            <tr><td>Граница (обычная)</td><td>1px, --color-border-strong</td></tr>
+            <tr><td>Граница (фокус)</td><td>1px --color-border-focus + кольцо focus-ring 3px акцентом 10%</td></tr>
+            <tr><td>Граница (ошибка / успех)</td><td>1px --color-error / --color-success</td></tr>
+            <tr><td>Шрифт</td><td>15px (base), обычный текст</td></tr>
+            <tr><td>Лейбл над полем</td><td>IBM Plex Mono, 12px, --color-text-muted</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Состояния интерактивных элементов</h2>
+        <p class="ds-block__desc">Ниже — состояния, которые статичный макет не может показать сам (курсор туда не наведёшь): смоделированы теми же CSS-значениями, что в реальных стилях компонентов.</p>
+
+        <table class="spec-table" style="margin-bottom:var(--space-5);">
+          <thead><tr><th>Состояние</th><th>Образец (primary)</th><th>Что меняется</th></tr></thead>
+          <tbody>
+            <tr><td>Обычное</td><td><button class="btn btn--primary btn--sm">Кнопка</button></td><td>—</td></tr>
+            <tr><td>Hover (при наведении курсора мыши)</td><td><button class="btn btn--primary btn--sm" style="background:var(--color-accent-strong); transform:translateY(-1px);">Кнопка</button></td><td>Фон темнее (accent → accent-strong), сдвиг вверх на 1px</td></tr>
+            <tr><td>Focus (в фокусе — например, после перехода клавишей Tab)</td><td><button class="btn btn--primary btn--sm" style="outline:2px solid var(--color-accent); outline-offset:2px;">Кнопка</button></td><td>Обводка 2px accent с отступом 2px — видна только при навигации с клавиатуры, не при клике мышью</td></tr>
+            <tr><td>Active (в момент нажатия)</td><td><button class="btn btn--primary btn--sm" style="transform:translateY(1px);">Кнопка</button></td><td>Сдвиг вниз на 1px — «утапливание»</td></tr>
+            <tr><td>Disabled (недоступна для нажатия)</td><td><button class="btn btn--primary btn--sm" disabled>Кнопка</button></td><td>Полупрозрачность 50%, курсор «запрещено», состояния hover/active не срабатывают</td></tr>
+          </tbody>
+        </table>
+
+        <table class="spec-table" style="margin-bottom:var(--space-5);">
+          <thead><tr><th>Вариант кнопки</th><th>При наведении (hover)</th></tr></thead>
+          <tbody>
+            <tr><td>secondary</td><td><button class="btn btn--secondary btn--sm" style="border-color:var(--color-accent); color:var(--color-accent);">Кнопка</button> — граница и текст становятся акцентными</td></tr>
+            <tr><td>ghost</td><td><button class="btn btn--ghost btn--sm" style="background:var(--color-accent-dim); color:var(--color-accent);">Кнопка</button> — появляется мягкий акцентный фон</td></tr>
+            <tr><td>danger</td><td><button class="btn btn--danger btn--sm" style="background:#96301f;">Кнопка</button> — фон темнее (error → error-hover #96301f)</td></tr>
+          </tbody>
+        </table>
+
+        <div style="display:flex; gap:var(--space-6); flex-wrap:wrap; align-items:flex-end; margin-bottom:var(--space-5);">
+          <div>
+            <div class="demo-caption" style="margin-bottom:6px;">Поле — фокус</div>
+            <div class="field__input-wrap" style="width:200px;"><input class="field__input" style="border-color:var(--color-border-focus); background:var(--color-bg-input-focus); box-shadow:var(--shadow-focus);" value="Текст" /></div>
+          </div>
+          <div>
+            <div class="demo-caption" style="margin-bottom:6px;">Nav-пилюля (pill) — при наведении (hover)</div>
+            <span class="app-header__pill" style="border-color:var(--color-accent); color:var(--color-accent);">📁 Мои проекты</span>
+          </div>
+          <div>
+            <div class="demo-caption" style="margin-bottom:6px;">Nav-пилюля (pill) — активная/текущая страница</div>
+            <span class="app-header__pill app-header__pill--active">📁 Мои проекты</span>
+          </div>
+          <div>
+            <div class="demo-caption" style="margin-bottom:6px;">Строка таблицы — при наведении (hover)</div>
+            <div class="table-wrap" style="width:200px;"><table class="table"><tbody><tr style="background:var(--color-bg);"><td>CRM System</td></tr></tbody></table></div>
+          </div>
+          <div>
+            <div class="demo-caption" style="margin-bottom:6px;">Карточка — при наведении (hover), только «кликабельная» разновидность</div>
+            <div class="card" style="width:120px; height:56px; box-shadow:var(--shadow-md); border-color:var(--color-border-strong); transform:translateY(-1px);"></div>
+          </div>
+        </div>
+        <p class="ds-block__desc" style="margin-bottom:0;">Ссылки (например, «Зарегистрироваться» на экране входа) при hover меняют цвет на --color-accent-strong; во всех интерактивных элементах переход плавный, 140мс.</p>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Эмблема (логотип)</h2>
+        <p class="ds-block__desc">Единственный настоящий SVG-значок в интерфейсе — три восходящие колонки на скруглённом терракотовом квадрате (отсылка к колонкам канбан-доски приложения: К выполнению → В работе → Готово). Один и тот же файл используется и как значок вкладки браузера (favicon), и как эмблема рядом с названием «TaskFlow» в шапке — раньше это были два разных, не связанных друг с другом изображения (фиолетово-синий favicon по умолчанию и однотонный оранжевый квадрат в шапке).</p>
+        <div style="display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-4);">
+          <svg viewBox="0 0 32 32" style="width:48px; height:48px; box-shadow:var(--shadow-accent);" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#c1611f"/><rect x="8" y="17" width="5" height="9" rx="2.5" fill="#fdf9f0"/><rect x="14.5" y="12" width="5" height="14" rx="2.5" fill="#fdf9f0"/><rect x="21" y="7" width="5" height="19" rx="2.5" fill="#fdf9f0"/></svg>
+          <svg viewBox="0 0 32 32" style="width:24px; height:24px; box-shadow:var(--shadow-accent);" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#c1611f"/><rect x="8" y="17" width="5" height="9" rx="2.5" fill="#fdf9f0"/><rect x="14.5" y="12" width="5" height="14" rx="2.5" fill="#fdf9f0"/><rect x="21" y="7" width="5" height="19" rx="2.5" fill="#fdf9f0"/></svg>
+          <svg viewBox="0 0 32 32" style="width:16px; height:16px;" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#c1611f"/><rect x="8" y="17" width="5" height="9" rx="2.5" fill="#fdf9f0"/><rect x="14.5" y="12" width="5" height="14" rx="2.5" fill="#fdf9f0"/><rect x="21" y="7" width="5" height="19" rx="2.5" fill="#fdf9f0"/></svg>
+        </div>
+        <table class="spec-table" style="margin-bottom:var(--space-5);">
+          <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
+          <tbody>
+            <tr><td>Файл</td><td><code>web/public/favicon.svg</code> — один файл на оба места применения</td></tr>
+            <tr><td>Фон</td><td><code>#c1611f</code> (--color-accent), скругление 7/32 (≈ radius-md в масштабе)</td></tr>
+            <tr><td>Колонки</td><td><code>#fdf9f0</code> (--color-on-accent), три штуки, высота по возрастанию слева направо</td></tr>
+            <tr><td>Размер в шапке</td><td>24×24px, с тенью <code>--shadow-accent</code></td></tr>
+            <tr><td>Размер во вкладке браузера</td><td>задаётся браузером (обычно 16×16), тот же файл</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Иконки</h2>
+        <p class="ds-block__desc">Кроме эмблемы выше — нет иконного шрифта/SVG-набора, везде нативные emoji-символы или обычные текстовые символы. У навигационных/пустых состояний — <code>aria-hidden="true"</code>, смысл передаётся соседним текстом (для скринридера). У кнопок закрытия — не aria-hidden, а собственный <code>aria-label</code>.</p>
+        <table class="spec-table">
+          <thead><tr><th>Символ</th><th>Где</th><th>Заметка</th></tr></thead>
+          <tbody>
+            <tr><td style="font-size:1.1rem;">📁</td><td>Nav-пилюля (pill) «Мои проекты»; иконка пустого состояния списка проектов</td><td>aria-hidden</td></tr>
+            <tr><td style="font-size:1.1rem;">🗂️</td><td>Nav-пилюля «Мои задачи»; иконка пустого состояния «Мои задачи»</td><td>aria-hidden</td></tr>
+            <tr><td style="font-size:1.1rem;">⚙</td><td>Nav-пилюля «Администрирование»</td><td>aria-hidden</td></tr>
+            <tr><td style="font-size:1.1rem;">✅</td><td>Иконка пустого состояния списка задач внутри проекта</td><td>aria-hidden</td></tr>
+            <tr><td style="font-size:1.1rem;">💬</td><td>Счётчик комментариев у задачи (рядом — число)</td><td>Показывается только если комментариев &gt; 0</td></tr>
+            <tr><td style="font-size:1.1rem;">✓ / ! / i</td><td>Иконка тоста: success / error / info</td><td>Буквально символ в кружке, не картинка</td></tr>
+            <tr><td style="font-size:1.1rem;">✕</td><td>Кнопка закрытия модалки, кнопка скрытия тоста</td><td>С <code>aria-label</code> («Закрыть» / «Скрыть уведомление»)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Тосты (всплывающие уведомления)</h2>
+        <div style="display:flex; flex-direction:column; gap:var(--space-2); max-width:360px; margin-bottom:var(--space-4);">
+          <div style="display:flex; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--color-bg-input); border:1px solid var(--color-border); box-shadow:var(--shadow-lg);">
+            <span style="width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;background:var(--color-success-dim);color:var(--color-success);flex-shrink:0;">✓</span>
+            <span style="font-size:var(--fs-sm);">Задача создана</span>
+          </div>
+          <div style="display:flex; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--color-bg-input); border:1px solid var(--color-border); box-shadow:var(--shadow-lg);">
+            <span style="width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;background:var(--color-error-dim);color:var(--color-error);flex-shrink:0;">!</span>
+            <span style="font-size:var(--fs-sm);">Не удалось изменить роль</span>
+          </div>
+          <div style="display:flex; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--color-bg-input); border:1px solid var(--color-border); box-shadow:var(--shadow-lg);">
+            <span style="width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;background:var(--color-info-soft);color:var(--color-info);flex-shrink:0;">i</span>
+            <span style="font-size:var(--fs-sm);">Вариант info (в реальных сценариях приложения не встречается — по умолчанию используется, только если вызвать showToast без варианта)</span>
+          </div>
+        </div>
+        <table class="spec-table">
+          <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
+          <tbody>
+            <tr><td>Позиция</td><td>Фиксированная, правый верхний угол (20px от края)</td></tr>
+            <tr><td>Ширина</td><td>360px (или ширина экрана − 40px на узких)</td></tr>
+            <tr><td>Тень</td><td>shadow-lg — та же, что у модалок</td></tr>
+            <tr><td>Иконка</td><td>success — «✓», error — «!», info — «i» (буквально символ, не иконный шрифт)</td></tr>
+            <tr><td>Автоскрытие</td><td>Через 4000 мс, либо вручную кнопкой «✕»</td></tr>
+            <tr><td>Появление/исчезновение</td><td>Сдвиг + затухание, стопкой сверху вниз при нескольких</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ds-block">
+        <h2 class="ds-block__title" style="font-size:var(--fs-md);">Таблицы, карточки, модалки, шапка — размеры</h2>
+        <table class="spec-table">
+          <thead><tr><th>Компонент</th><th>Параметр</th><th>Значение</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3">Таблица</td><td>Радиус обёртки</td><td>14px (lg)</td></tr>
+            <tr><td>Паддинг ячейки</td><td>16px</td></tr>
+            <tr><td>Шапка (thead)</td><td>IBM Plex Mono 13px, фон --color-bg, текст --color-text-muted</td></tr>
+            <tr><td rowspan="2">Карточка</td><td>Радиус</td><td>14px (lg)</td></tr>
+            <tr><td>Паддинг (--padded)</td><td>24px</td></tr>
+            <tr><td rowspan="4">Модальное окно</td><td>Макс. ширина</td><td>480px (520px — форма задачи, шире из-за поля меток)</td></tr>
+            <tr><td>Радиус</td><td>14px (lg)</td></tr>
+            <tr><td>Паддинг заголовка/футера</td><td>20px по вертикали, 24px по горизонтали</td></tr>
+            <tr><td>Паддинг тела</td><td>24px</td></tr>
+            <tr><td rowspan="3">Шапка приложения</td><td>Высота</td><td>64px, прилипает к верху (sticky)</td></tr>
+            <tr><td>Паддинг по бокам</td><td>24px</td></tr>
+            <tr><td>Аватар</td><td>32px, круг</td></tr>
+            <tr><td>Nav-пилюля (pill)</td><td>Паддинг (padding — внутренний отступ)</td><td>8px / 12px, радиус 999px, шрифт mono 12px/600</td></tr>
+            <tr><td rowspan="2">Вкладки админки</td><td>Группа-«таблетка» (обёртка)</td><td>Фон --color-bg, рамка 1px --color-border, радиус 999px, паддинг 4px</td></tr>
+            <tr><td>Отдельная вкладка</td><td>Паддинг 8px/16px, радиус 999px, активная — фон --color-accent-dim + текст --color-accent-strong (тот же паттерн, что у активной nav-пилюли)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================== ВХОД ============================== -->
+    <section class="screen" data-screen="login">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/login</div></div>
+        <div class="auth-shell">
+          <aside class="auth-pitch">
+            <div class="auth-pitch__content">
+              <span class="auth-pitch__eyebrow">QA Training Platform</span>
+              <h1 class="auth-pitch__title">Учись тестировать так, как в бою.</h1>
+              <p class="auth-pitch__subtitle">Реальный backend, реальные баги, реальные ревью. Без песочницы — сразу рабочая среда.</p>
+              <div class="auth-pitch__meta"><span class="auth-pitch__dot"></span><span>practice environment · real endpoints · real bugs</span></div>
+            </div>
+          </aside>
+          <div class="auth-form-side">
+            <div class="auth-card">
+              <div class="form-header">
+                <h2 class="form-header__title">Вход</h2>
+                <p class="form-header__hint">Нет аккаунта? <a href="#" class="hotspot" data-goto="register">Зарегистрироваться</a></p>
+              </div>
+              <div class="field">
+                <label class="field__label">Email</label>
+                <div class="field__input-wrap"><input class="field__input" value="anna@example.com" /></div>
+              </div>
+              <div class="field">
+                <label class="field__label">Пароль</label>
+                <div class="field__input-wrap"><input class="field__input" type="password" value="••••••••••" /></div>
+              </div>
+              <button class="form-submit">Войти</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Состояние: ошибка</span> — при неверных данных над формой появляется красный баннер с текстом от API, форма «трясётся»; поля не сбрасываются. При «пользователь деактивирован» — тот же баннер, тот же код ошибки, что и при неверном пароле (не должно быть видно разницы).</div>
+    </section>
+
+    <!-- ============================ РЕГИСТРАЦИЯ ============================ -->
+    <section class="screen" data-screen="register">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/register</div></div>
+        <div class="auth-shell">
+          <aside class="auth-pitch">
+            <div class="auth-pitch__content">
+              <span class="auth-pitch__eyebrow">QA Training Platform</span>
+              <h1 class="auth-pitch__title">Первая ошибка 404 будет твоей.</h1>
+              <p class="auth-pitch__subtitle">Регистрация даёт доступ к учебному API, Swagger, и данным для чек-листов и тест-кейсов.</p>
+              <div class="auth-pitch__meta"><span class="auth-pitch__dot"></span><span>practice environment · real endpoints · real bugs</span></div>
+            </div>
+          </aside>
+          <div class="auth-form-side">
+            <div class="auth-card">
+              <div class="form-header">
+                <h2 class="form-header__title">Регистрация</h2>
+                <p class="form-header__hint">Уже есть аккаунт? <a href="#" class="hotspot" data-goto="login">Войти</a></p>
+              </div>
+              <div class="field"><label class="field__label">Имя</label><div class="field__input-wrap"><input class="field__input" placeholder="Иван" /></div></div>
+              <div class="field"><label class="field__label">Фамилия</label><div class="field__input-wrap"><input class="field__input" placeholder="Иванов" /></div></div>
+              <div class="field"><label class="field__label">Email</label><div class="field__input-wrap"><input class="field__input" placeholder="you@example.com" /></div></div>
+              <div class="field field--valid">
+                <label class="field__label"><span>Пароль</span><span class="field__strength" data-level="fair">средний</span></label>
+                <div class="field__input-wrap"><input class="field__input" placeholder="мин. 8 символов, включая A-Z, a-z, 0-9" value="Strong1Pass" /></div>
+              </div>
+              <div class="field field--invalid">
+                <label class="field__label">Повторите пароль</label>
+                <div class="field__input-wrap"><input class="field__input" value="strong1pass" /></div>
+                <span class="field__error">Пароли не совпадают</span>
+              </div>
+              <button class="form-submit">Создать аккаунт</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Проверить:</span> индикатор «слабый/средний/сильный» — косметика, не блокирует отправку; блокирует только жёсткое правило (8–64 симв., ≥1 строчная/заглавная/цифра). Успешная регистрация сразу логинит — отдельно заходить не нужно.</div>
+    </section>
+
+    <!-- ============================ МОИ ПРОЕКТЫ ============================ -->
+    <section class="screen" data-screen="projects-list">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/</div></div>
+        <div id="header-1"></div>
+        <div class="mock-persona">Как: <b>Анна Петрова</b> · anna@example.com · глобальная роль USER</div>
+        <div class="app-body">
+          <div class="page-header">
+            <div><h1>Проекты</h1><span class="page-subtitle">Проекты, в которых вы участвуете — 2</span></div>
+            <button class="btn btn--primary hotspot" data-goto="modal-create-project">Создать проект</button>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>Название</th><th>Описание</th><th>Статус</th><th>Моя роль</th></tr></thead>
+              <tbody>
+                <tr><td class="hotspot hotspot--link" data-goto="project-detail">CRM System</td><td>CRM для отдела продаж</td><td><span class="badge badge--success">Активен</span></td><td><span class="badge badge--accent">Владелец</span></td></tr>
+                <tr><td class="hotspot hotspot--link" data-goto="project-detail">TaskFlow Backend</td><td>Разработка backend сервиса</td><td><span class="badge badge--success">Активен</span></td><td><span class="badge badge--accent">Наблюдатель</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Про пагинацию:</span> её здесь нет — не потому, что забыли, а потому что все элементы помещаются на одну страницу (2 проекта, лимит страницы — 20). Блок «Назад/Вперёд» появляется, только если офсет &gt; 0 или есть следующая страница; когда всё влезает сразу, его не должно быть вовсе — ни кнопок, ни счётчика. <span class="mock-note__mark">Для ADMIN этот же экран:</span> заголовок «Все проекты», в столбце «Моя роль» — везде «Администратор» (даже если явного членства нет). Пустое состояние (0 проектов у нового пользователя): иконка 📁 + «Пока нет проектов» + подсказка «Создайте первый проект…» — без своей кнопки, кнопка создания только одна, в шапке раздела. Ошибка загрузки: список не рисуется, вместо него красный баннер.</div>
+    </section>
+
+    <!-- ============================ ДЕТАЛИ ПРОЕКТА ============================ -->
+    <section class="screen" data-screen="project-detail">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/projects/1</div></div>
+        <div id="header-2"></div>
+        <div class="mock-persona">Как: <b>Иван Иванов</b> · ivan@example.com · роль в проекте: <b>MANAGER</b></div>
+        <div class="app-body">
+          <div class="page-header">
+            <div>
+              <div style="display:flex; align-items:center; gap: var(--space-3);"><h1>TaskFlow Backend</h1><span class="badge badge--success">Активен</span></div>
+              <p style="color:var(--color-text-muted); font-size: var(--fs-sm); margin-top: var(--space-2);">Разработка backend сервиса</p>
+            </div>
+            <span class="qa-gate"><button class="btn btn--secondary btn--sm">Редактировать</button><span class="qa-gate__tag">MANAGER+/ADMIN</span></span>
+          </div>
+
+          <div class="section-block">
+            <div class="section-block__head">
+              <span class="section-block__title">Участники</span>
+              <span class="qa-gate hotspot" data-goto="modal-add-member"><span class="qa-gate__tag">OWNER/ADMIN — недоступно этому пользователю → как выглядит у того, кому доступно</span></span>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Пользователь</th><th>Роль</th></tr></thead>
+                <tbody>
+                  <tr><td>System Administrator</td><td><span class="badge badge--accent">Владелец</span></td></tr>
+                  <tr><td>Иван Иванов <span class="chip" style="margin-left:6px;">вы</span></td><td><span class="badge badge--accent">Менеджер</span></td></tr>
+                  <tr><td>Анна Петрова</td><td><span class="badge badge--accent">Наблюдатель</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="mock-note" style="margin: var(--space-3) 0 0;"><span class="mock-note__mark">Проверить:</span> запись System Administrator (глобальный ADMIN) в этом проекте показана как «Владелец», а не «Администратор» — она заведена напрямую при первичном заполнении БД (seed), в обход формы добавления участника, где роль ADMIN форсируется. Ожидаемо ли это — стоит сверить с docs/WEB_SPEC.md §3.2.</div>
+
+          <div class="section-block">
+            <div class="section-block__head">
+              <span class="section-block__title">Задачи</span>
+              <span class="qa-gate"><button class="btn btn--primary btn--sm hotspot" data-goto="modal-task">Создать задачу</button><span class="qa-gate__tag">MANAGER+/ADMIN</span></span>
+            </div>
+            <div class="filters-row">
+              <div class="field__input-wrap"><input class="field__input" placeholder="Поиск по названию…" /></div>
+              <div class="field__input-wrap"><select class="field__input"><option>Все статусы</option></select></div>
+              <div class="field__input-wrap"><select class="field__input"><option>Все приоритеты</option></select></div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Задача</th><th>Приоритет</th><th>Статус</th><th>Исполнитель</th><th></th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><div class="hotspot hotspot--link" data-goto="task-detail" style="font-weight:600;">Создать регистрацию <span title="Комментариев: 2" style="font-size:var(--fs-xs); color:var(--color-text-muted); font-weight:400;">💬 2</span></div><div style="font-size:var(--fs-xs); color:var(--color-text-muted);">Добавить регистрацию пользователей</div><div class="pill-row" style="margin-top:4px;"><span class="label-chip">backend</span><span class="label-chip">feature</span></div></td>
+                    <td><span class="badge badge--danger">Высокий</span></td>
+                    <td><select class="field__input" style="height:32px; padding: 0 var(--space-2); font-size: var(--fs-xs);"><option>К выполнению</option></select></td>
+                    <td>Иван Иванов</td>
+                    <td style="white-space:nowrap;"><button class="btn btn--ghost btn--sm hotspot" data-goto="modal-task">Изменить</button><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="hotspot hotspot--link" data-goto="task-detail" style="font-weight:600;">JWT авторизация <span title="Комментариев: 1" style="font-size:var(--fs-xs); color:var(--color-text-muted); font-weight:400;">💬 1</span></div><div style="font-size:var(--fs-xs); color:var(--color-text-muted);">Реализовать вход по JWT</div><div class="pill-row" style="margin-top:4px;"><span class="label-chip">backend</span><span class="label-chip">urgent</span></div></td>
+                    <td><span class="badge badge--danger">Высокий</span></td>
+                    <td><select class="field__input" style="height:32px; padding: 0 var(--space-2); font-size: var(--fs-xs);"><option>В работе</option></select></td>
+                    <td>Анна Петрова</td>
+                    <td style="white-space:nowrap;"><button class="btn btn--ghost btn--sm hotspot" data-goto="modal-task">Изменить</button><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="hotspot hotspot--link" data-goto="task-detail" style="font-weight:600;">Настроить CI</div><div style="font-size:var(--fs-xs); color:var(--color-text-muted);">Прогон линтера и тестов на пуш</div></td>
+                    <td><span class="badge badge--neutral">Низкий</span></td>
+                    <td><select class="field__input" style="height:32px; padding: 0 var(--space-2); font-size: var(--fs-xs);"><option>К выполнению</option></select></td>
+                    <td style="color:var(--color-text-faint);">—</td>
+                    <td style="white-space:nowrap;"><button class="btn btn--ghost btn--sm hotspot" data-goto="modal-task">Изменить</button><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Про пагинацию:</span> так же, как и на «Мои проекты» — блока «Назад/Вперёд» здесь нет, потому что все 3 задачи помещаются на одну страницу. <span class="mock-note__mark">Пусто (с фильтром):</span> «Нет задач по фильтру», без подсказки. <b>Пусто (без фильтра):</b> «Пока нет задач» + подсказка «Создайте первую задачу…», если есть право — без своей кнопки, кнопка создания только одна, в шапке раздела «Задачи», не дублируется. <b>Нет доступа/не найден:</b> единый текст «Проект не найден или у вас нет к нему доступа.» + ссылка «Ко всем проектам» — специально не различает 404 (Not Found — «ресурс не существует») и 403 (Forbidden — «доступа нет»).</div>
+    </section>
+
+    <!-- ============================ МОДАЛКА: СОЗДАТЬ ПРОЕКТ ============================ -->
+    <section class="screen" data-screen="modal-create-project">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/ · модалка</div></div>
+        <div class="modal-canvas">
+          <div class="modal">
+            <div class="modal__header"><span class="modal__title">Новый проект</span><button class="modal__close hotspot" data-goto="projects-list">✕</button></div>
+            <div class="modal__body">
+              <div class="field"><label class="field__label">Название</label><div class="field__input-wrap"><input class="field__input" placeholder="Например, Redesign" maxlength="100" /></div></div>
+              <div class="field"><label class="field__label">Описание</label><div class="field__input-wrap"><input class="field__input" placeholder="Необязательно" maxlength="1000" /></div></div>
+            </div>
+            <div class="modal__footer"><button class="btn btn--secondary hotspot" data-goto="projects-list">Отмена</button><span class="qa-gate hotspot" data-goto="project-detail" style="cursor:pointer;"><button class="btn btn--primary">Создать</button><span class="qa-gate__tag">→ Детали проекта</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Проверить:</span> доступно любому авторизованному (не только тем, у кого уже есть проекты) — создатель автоматически становится «Владельцем». Успех сразу открывает страницу нового проекта, не остаётся на списке.</div>
+    </section>
+
+    <!-- ============================ МОДАЛКА: ДОБАВИТЬ УЧАСТНИКА ============================ -->
+    <section class="screen" data-screen="modal-add-member">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/projects/1 · модалка</div></div>
+        <div class="modal-canvas">
+          <div class="modal">
+            <div class="modal__header"><span class="modal__title">Добавить участника</span><button class="modal__close hotspot" data-goto="project-detail">✕</button></div>
+            <div class="modal__body">
+              <div class="field">
+                <label class="field__label">Роль для новых участников</label>
+                <div class="field__input-wrap"><input class="field__input" value="Администратор" disabled /></div>
+                <span class="field__hint">Екатерина Орлова — администратор платформы, роль в проекте всегда «Администратор».</span>
+              </div>
+              <div class="field">
+                <label class="field__label">Пользователь</label>
+                <div class="picker__selected">
+                  <div><div class="picker__name">Екатерина Орлова</div><div class="picker__email">kate@example.com</div></div>
+                  <button class="btn btn--ghost btn--sm">Изменить</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal__footer"><button class="btn btn--secondary hotspot" data-goto="project-detail">Отмена</button><button class="btn btn--primary">Добавить</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Ключевой сценарий:</span> выбор роли автоматически подменяется нередактируемым «Администратор», как только выбранный пользователь оказался глобальным ADMIN — <i>до</i> отправки формы, а не после. До выбора пользователя — обычный выпадающий список «Наблюдатель/Менеджер/Владелец» (по умолчанию «Наблюдатель»). Поиск: debounce (запрос улетает не на каждое нажатие клавиши, а спустя короткую паузу после того, как перестали печатать), уже добавленные участники из результатов исключены, пустые состояния — «Начните вводить имя или email» / «Ищем…» / «Никого не найдено».</div>
+    </section>
+
+    <!-- ============================ МОДАЛКА: НОВАЯ ЗАДАЧА ============================ -->
+    <section class="screen" data-screen="modal-task">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/projects/1 · модалка</div></div>
+        <div class="modal-canvas">
+          <div class="modal" style="max-width:520px;">
+            <div class="modal__header"><span class="modal__title">Новая задача</span><button class="modal__close hotspot" data-goto="project-detail">✕</button></div>
+            <div class="modal__body">
+              <div class="field"><label class="field__label">Название</label><div class="field__input-wrap"><input class="field__input" value="Импорт клиентов" maxlength="100" /></div></div>
+              <div class="field"><label class="field__label">Описание</label><div class="field__input-wrap"><input class="field__input" value="Добавить импорт базы клиентов" maxlength="1000" /></div></div>
+              <div class="field"><label class="field__label">Приоритет</label><div class="field__input-wrap"><select class="field__input"><option>Низкий</option></select></div></div>
+              <div class="field">
+                <label class="field__label">Исполнитель</label>
+                <div class="picker__selected"><span class="picker__name">Екатерина Орлова</span><button class="btn btn--ghost btn--sm">Изменить</button></div>
+                <span class="field__hint">Поиск — по всем пользователям системы, не только участникам проекта (включая ADMIN).</span>
+              </div>
+              <div class="field">
+                <label class="field__label">Метки</label>
+                <div class="pill-row">
+                  <button class="label-chip label-chip--toggle label-chip--active">backend</button>
+                  <button class="label-chip label-chip--toggle">frontend</button>
+                  <button class="label-chip label-chip--toggle">mobile</button>
+                  <button class="label-chip label-chip--toggle">bug</button>
+                  <button class="label-chip label-chip--toggle">feature</button>
+                  <button class="label-chip label-chip--toggle">urgent</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal__footer"><button class="btn btn--secondary hotspot" data-goto="project-detail">Отмена</button><button class="btn btn--primary">Создать</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Проверить:</span> исполнитель и метки — необязательные поля (можно создать/сохранить без них). Модалка редактирования — тот же макет, заголовок «Изменить задачу», кнопка «Сохранить», поля и метки предзаполнены текущими значениями. Доступна только MANAGER+/ADMIN.</div>
+    </section>
+
+    <!-- ============================ КАРТОЧКА ЗАДАЧИ ============================ -->
+    <section class="screen" data-screen="task-detail">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/tasks · модалка</div></div>
+        <div class="modal-canvas">
+          <div class="modal" style="max-width:520px;">
+            <div class="modal__header"><span class="modal__title">Импорт клиентов</span><button class="modal__close hotspot" data-goto="my-tasks">✕</button></div>
+            <div class="modal__body">
+              <p style="font-size:var(--fs-sm); color:var(--color-text-muted); margin-bottom: var(--space-5);">Добавить импорт базы клиентов</p>
+              <dl class="meta-grid" style="margin-bottom: var(--space-6);">
+                <dt>Приоритет</dt><dd><span class="badge badge--neutral">Низкий</span></dd>
+                <dt>Статус</dt><dd><span class="qa-gate"><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>К выполнению</option></select><span class="qa-gate__tag">доступно — вы исполнитель</span></span></dd>
+                <dt>Исполнитель</dt><dd>Екатерина Орлова</dd>
+                <dt>Метки</dt><dd><span class="label-chip">bug</span></dd>
+              </dl>
+              <div style="font-family:var(--font-mono); font-size:var(--fs-xs); text-transform:uppercase; letter-spacing:.05em; color:var(--color-text-muted); margin-bottom:var(--space-2);">Комментарии</div>
+              <div class="comment">
+                <div class="comment__head"><span class="comment__author">Анна Петрова</span><span class="qa-gate"><span class="qa-gate__tag">не ваш — нет права удалить</span></span></div>
+                <p class="comment__text">База клиентов будет в CSV, уточните кодировку у поставщика.</p>
+              </div>
+              <div class="comment">
+                <div class="comment__head"><span class="comment__author">Екатерина Орлова</span><div><button class="btn btn--ghost btn--sm">Изменить</button><button class="btn btn--ghost btn--sm">Удалить</button></div></div>
+                <p class="comment__text">Приняла в работу, уточню кодировку сегодня.</p>
+              </div>
+              <form style="margin-top: var(--space-4); display:flex; flex-direction:column; gap: var(--space-3);">
+                <textarea class="field__input" rows="2" maxlength="500" placeholder="Написать комментарий…"></textarea>
+                <button class="btn btn--primary btn--sm" style="align-self:flex-end;">Отправить</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Сценарий «доступ исполнителя без членства»:</span> Екатерина Орлова не состоит в участниках CRM System, но назначена исполнителем этой задачи — открыть саму страницу проекта она не может (в ответ 404 — «страница не найдена», как будто проекта не существует), а эту карточку и статус — может. Право удалять чужой комментарий не зависит от того, что она исполнитель — только от роли MANAGER+/OWNER/ADMIN в проекте (её здесь нет). Редактировать чужой комментарий нельзя вообще никому, только автору. <i>Оба комментария на этом макете — иллюстрация для сценария; у только что засеянной «Импорт клиентов» реальных комментариев ещё нет (0), появятся после того, как их кто-то добавит через форму ниже.</i></div>
+    </section>
+
+    <!-- ============================ МОИ ЗАДАЧИ ============================ -->
+    <section class="screen" data-screen="my-tasks">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/tasks</div></div>
+        <div id="header-3"></div>
+        <div class="mock-persona">Как: <b>Екатерина Орлова</b> · kate@example.com · не участник CRM System, но исполнитель одной из его задач</div>
+        <div class="app-body">
+          <div class="page-header"><div><h1>Мои задачи</h1><span class="page-subtitle">Задачи, назначенные лично на вас — 1</span></div></div>
+          <div class="filters-row">
+            <div class="field__input-wrap"><input class="field__input" placeholder="Поиск по названию…" /></div>
+            <div class="field__input-wrap"><select class="field__input"><option>Все статусы</option></select></div>
+            <div class="field__input-wrap"><select class="field__input"><option>Все приоритеты</option></select></div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>Проект</th><th>Задача</th><th>Приоритет</th><th>Статус</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>CRM System</td>
+                  <td class="hotspot hotspot--link" data-goto="task-detail" style="font-weight:600;">Импорт клиентов <span style="font-size:var(--fs-xs); color:var(--color-text-muted); font-weight:400;">💬 2</span><div class="pill-row" style="margin-top:4px;"><span class="label-chip">bug</span></div></td>
+                  <td><span class="badge badge--neutral">Низкий</span></td>
+                  <td><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>К выполнению</option></select></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Важно:</span> список — только задачи, назначенные лично на пользователя (не все задачи проектов, где он состоит). Статус редактируется всегда, без проверки роли (список и так отфильтрован по «исполнитель = я»). Пусто: 🗂️ «Задач пока нет» / «Нет задач по фильтру» + подсказка «Задачи появятся здесь, как только вас назначат исполнителем.».</div>
+    </section>
+
+    <!-- ============================ ПРОФИЛЬ ============================ -->
+    <section class="screen" data-screen="profile">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/profile</div></div>
+        <div id="header-4"></div>
+        <div class="mock-persona">Как: <b>Екатерина Орлова</b> · kate@example.com</div>
+        <div class="app-body" style="max-width:480px;">
+          <h1 style="margin-bottom:var(--space-6);">Профиль</h1>
+          <div class="card card--padded">
+            <div class="field"><label class="field__label">Email</label><div class="field__input-wrap"><input class="field__input" value="kate@example.com" disabled /></div><span class="field__hint">Email нельзя изменить.</span></div>
+            <div class="field"><label class="field__label">Имя</label><div class="field__input-wrap"><input class="field__input" value="Екатерина" /></div></div>
+            <div class="field"><label class="field__label">Фамилия</label><div class="field__input-wrap"><input class="field__input" value="Орлова" /></div></div>
+            <div class="field"><label class="field__label">Роль</label><div class="field__input-wrap"><input class="field__input" value="Пользователь" disabled /></div></div>
+            <button class="btn btn--primary" style="width:100%;">Сохранить</button>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Проверить:</span> поля только для чтения визуально отличаются (блёклые), не просто задизейблены без объяснения. Смены пароля/email тут нет вообще — не баг, API это не поддерживает. Успешное сохранение обновляет имя в шапке (аватар/инициалы) без перезагрузки страницы.</div>
+    </section>
+
+    <!-- ============================ АДМИН: ПОЛЬЗОВАТЕЛИ ============================ -->
+    <section class="screen" data-screen="admin-users">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/admin</div></div>
+        <div id="header-5"></div>
+        <div class="mock-persona">Как: <b>System Administrator</b> · admin@example.com · глобальная роль ADMIN</div>
+        <div class="app-body">
+          <h1 style="margin-bottom:var(--space-5);">Администрирование</h1>
+          <div class="admin-tabs"><span class="admin-tab admin-tab--active">Пользователи</span><span class="admin-tab">Метки</span><span class="admin-tab">Обслуживание</span></div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>Пользователь</th><th>Роль</th><th>Статус</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div style="font-weight:600;">System Administrator <span class="chip" style="margin-left:6px;">вы</span></div><div style="font-size:var(--fs-xs); color:var(--color-text-faint); font-family:var(--font-mono);">admin@example.com</div></td>
+                  <td><span class="qa-gate"><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);" disabled><option>Администратор</option></select><span class="qa-gate__tag">себя менять нельзя</span></span></td>
+                  <td><span class="badge badge--success">Активен</span> <button class="btn btn--ghost btn--sm" disabled>Деактивировать</button></td>
+                  <td><button class="btn btn--ghost btn--sm" disabled>Удалить</button></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:600;">Иван Иванов</div><div style="font-size:var(--fs-xs); color:var(--color-text-faint); font-family:var(--font-mono);">ivan@example.com</div></td>
+                  <td><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>Пользователь</option></select></td>
+                  <td><span class="badge badge--success">Активен</span> <button class="btn btn--ghost btn--sm">Деактивировать</button></td>
+                  <td><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:600;">Анна Петрова</div><div style="font-size:var(--fs-xs); color:var(--color-text-faint); font-family:var(--font-mono);">anna@example.com</div></td>
+                  <td><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>Пользователь</option></select></td>
+                  <td><span class="badge badge--success">Активен</span> <button class="btn btn--ghost btn--sm">Деактивировать</button></td>
+                  <td><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:600;">Алексей Сидоров</div><div style="font-size:var(--fs-xs); color:var(--color-text-faint); font-family:var(--font-mono);">alex@example.com</div></td>
+                  <td><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>Пользователь</option></select></td>
+                  <td><span class="badge badge--success">Активен</span> <button class="btn btn--ghost btn--sm">Деактивировать</button></td>
+                  <td><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:600;">Екатерина Орлова</div><div style="font-size:var(--fs-xs); color:var(--color-text-faint); font-family:var(--font-mono);">kate@example.com</div></td>
+                  <td><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>Пользователь</option></select></td>
+                  <td><span class="badge badge--success">Активен</span> <button class="btn btn--ghost btn--sm">Деактивировать</button></td>
+                  <td><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:600;">Дмитрий Соколов</div><div style="font-size:var(--fs-xs); color:var(--color-text-faint); font-family:var(--font-mono);">dmitry@example.com</div></td>
+                  <td><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>Пользователь</option></select></td>
+                  <td><span class="badge badge--success">Активен</span> <button class="btn btn--ghost btn--sm">Деактивировать</button></td>
+                  <td><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:600;">Ольга Смирнова</div><div style="font-size:var(--fs-xs); color:var(--color-text-faint); font-family:var(--font-mono);">olga@example.com</div></td>
+                  <td><select class="field__input" style="height:32px; padding:0 8px; font-size:var(--fs-xs);"><option>Пользователь</option></select></td>
+                  <td><span class="badge badge--neutral">Деактивирован</span> <button class="btn btn--ghost btn--sm">Активировать</button></td>
+                  <td><button class="btn btn--ghost btn--sm">Удалить</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Про пагинацию:</span> блока «Назад/Вперёд» здесь нет — все 7 пользователей помещаются на одну страницу (лимит — 20). <span class="mock-note__mark">Инварианты (жёсткие правила, которые система не даёт нарушить; проверяются сервером, показываются тостом — всплывающим уведомлением, не блокируются превентивно в форме):</span> нельзя понизить/деактивировать/удалить последнего активного ADMIN; нельзя повысить до ADMIN сверх 3 одновременно активных; нельзя удалить последнего OWNER непустого (не удалённого) проекта. Действия над самим собой всегда задизейблены (disabled — недоступны для нажатия) на этом экране.</div>
+    </section>
+
+    <!-- ============================ АДМИН: МЕТКИ ============================ -->
+    <section class="screen" data-screen="admin-labels">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/admin</div></div>
+        <div id="header-6"></div>
+        <div class="mock-persona">Как: <b>System Administrator</b> · admin@example.com</div>
+        <div class="app-body">
+          <h1 style="margin-bottom:var(--space-5);">Администрирование</h1>
+          <div class="admin-tabs"><span class="admin-tab">Пользователи</span><span class="admin-tab admin-tab--active">Метки</span><span class="admin-tab">Обслуживание</span></div>
+          <div style="display:flex; gap: var(--space-3); max-width:420px; margin-bottom: var(--space-5);">
+            <div class="field__input-wrap" style="flex:1;"><input class="field__input" placeholder="Название метки" maxlength="30" /></div>
+            <button class="btn btn--primary btn--sm">Добавить</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap: var(--space-2); max-width:420px;">
+            <div class="card" style="display:flex; align-items:center; justify-content:space-between; padding: var(--space-3) var(--space-4);"><span class="label-chip">backend</span><button class="btn btn--ghost btn--sm">Удалить</button></div>
+            <div class="card" style="display:flex; align-items:center; justify-content:space-between; padding: var(--space-3) var(--space-4);"><span class="label-chip">frontend</span><button class="btn btn--ghost btn--sm">Удалить</button></div>
+            <div class="card" style="display:flex; align-items:center; justify-content:space-between; padding: var(--space-3) var(--space-4);"><span class="label-chip">mobile</span>
+              <span style="display:flex; gap: var(--space-2);"><button class="btn btn--danger btn--sm">Точно удалить?</button><button class="btn btn--ghost btn--sm">Отмена</button></span>
+            </div>
+            <div class="card" style="display:flex; align-items:center; justify-content:space-between; padding: var(--space-3) var(--space-4);"><span class="label-chip">bug</span><button class="btn btn--ghost btn--sm">Удалить</button></div>
+            <div class="card" style="display:flex; align-items:center; justify-content:space-between; padding: var(--space-3) var(--space-4);"><span class="label-chip">feature</span><button class="btn btn--ghost btn--sm">Удалить</button></div>
+            <div class="card" style="display:flex; align-items:center; justify-content:space-between; padding: var(--space-3) var(--space-4);"><span class="label-chip">urgent</span><button class="btn btn--ghost btn--sm">Удалить</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Проверить:</span> удаление метки физическое (не soft delete — не «мягкое» скрытие, а безвозвратное удаление из БД) и каскадно отвязывает её от всех задач — сразу должно пропасть из чипов (chip) на карточках задач без reload (без обновления страницы). Создание с уже занятым названием — ошибка баннером над формой, не тостом (toast — всплывающим уведомлением).</div>
+    </section>
+
+    <!-- ============================ АДМИН: ОБСЛУЖИВАНИЕ ============================ -->
+    <section class="screen" data-screen="admin-maintenance">
+      <div class="mock-frame">
+        <div class="mock-frame__bar"><div class="mock-frame__dots"><span></span><span></span><span></span></div><div class="mock-frame__url">localhost:3000/admin</div></div>
+        <div id="header-7"></div>
+        <div class="mock-persona">Как: <b>System Administrator</b> · admin@example.com</div>
+        <div class="app-body">
+          <h1 style="margin-bottom:var(--space-5);">Администрирование</h1>
+          <div class="admin-tabs"><span class="admin-tab">Пользователи</span><span class="admin-tab">Метки</span><span class="admin-tab admin-tab--active">Обслуживание</span></div>
+          <div class="danger-card">
+            <div>
+              <div class="danger-card__title">Сбросить базу данных</div>
+              <div class="danger-card__desc">Полностью очищает все данные (проекты, задачи, пользователей, метки) и заново заполняет их из seed.py. Необратимо — весь мусор от ручного тестирования и накопленные изменения будут потеряны.</div>
+            </div>
+            <button class="btn btn--danger" style="flex-shrink:0;">Сбросить БД</button>
+          </div>
+        </div>
+      </div>
+      <div class="mock-note"><span class="mock-note__mark">Проверить:</span> перед реальным сбросом — второй шаг подтверждения («Точно сбросить всё?» + «Отмена»). После успеха локальный кэш запросов приложения полностью очищается — все списки в открытых вкладках должны перезапроситься, а не показывать устаревшие данные.</div>
+    </section>
+
+  </main>
+</div>
+
+<template id="tpl-header">
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__logo"><svg class="app-header__logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#c1611f"/><rect x="8" y="17" width="5" height="9" rx="2.5" fill="#fdf9f0"/><rect x="14.5" y="12" width="5" height="14" rx="2.5" fill="#fdf9f0"/><rect x="21" y="7" width="5" height="19" rx="2.5" fill="#fdf9f0"/></svg>TaskFlow</span>
+      <div class="app-header__nav-group">
+        <span class="app-header__pill hotspot" data-goto="projects-list">📁 Мои проекты</span>
+        <span class="app-header__pill hotspot" data-goto="my-tasks">🗂️ Мои задачи</span>
+      </div>
+    </div>
+    <div class="app-header__user">
+      <span class="app-header__pill app-header__pill--accent hotspot" data-goto="admin-users" data-admin-only>⚙ Администрирование</span>
+      <span class="app-header__avatar hotspot" data-initials data-goto="profile">АП</span>
+      <span class="app-header__name hotspot" data-name data-goto="profile">Анна Петрова</span>
+      <button class="btn btn--ghost btn--sm">Выйти</button>
+    </div>
+  </header>
+</template>
+
+<script>
+  // Наполняем повторяющуюся шапку из <template>, чтобы не дублировать
+  // разметку 7 раз вручную — сама шапка везде одинаковая, меняются
+  // только видимость пункта администратора и имя/инициалы.
+  var headers = [
+    { id: 'header-1', name: 'Анна Петрова', initials: 'АП', admin: false },
+    { id: 'header-2', name: 'Иван Иванов', initials: 'ИИ', admin: false },
+    { id: 'header-3', name: 'Екатерина Орлова', initials: 'ЕО', admin: false },
+    { id: 'header-4', name: 'Екатерина Орлова', initials: 'ЕО', admin: false },
+    { id: 'header-5', name: 'System Administrator', initials: 'SA', admin: true },
+    { id: 'header-6', name: 'System Administrator', initials: 'SA', admin: true },
+    { id: 'header-7', name: 'System Administrator', initials: 'SA', admin: true }
+  ];
+  var tpl = document.getElementById('tpl-header');
+  headers.forEach(function (h) {
+    var mount = document.getElementById(h.id);
+    if (!mount) return;
+    var node = tpl.content.cloneNode(true);
+    node.querySelector('[data-name]').textContent = h.name;
+    node.querySelector('[data-initials]').textContent = h.initials;
+    var adminPill = node.querySelector('[data-admin-only]');
+    if (!h.admin) adminPill.style.display = 'none';
+    mount.appendChild(node);
+  });
+
+  // Переключение экранов: и по боковой навигации, и по кликабельным
+  // "горячим точкам" внутри самих макетов (.hotspot[data-goto]) — обе
+  // ведут в один и тот же showScreen, чтобы состояние не расходилось.
+  var navItems = document.querySelectorAll('.mock-nav__item');
+  var screens = document.querySelectorAll('.screen');
+
+  function showScreen(target) {
+    var section = document.querySelector('.screen[data-screen="' + target + '"]');
+    if (!section) return;
+    screens.forEach(function (s) { s.removeAttribute('aria-current'); });
+    section.setAttribute('aria-current', 'true');
+    navItems.forEach(function (b) {
+      if (b.getAttribute('data-target') === target) b.setAttribute('aria-current', 'true');
+      else b.removeAttribute('aria-current');
+    });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  navItems.forEach(function (btn) {
+    btn.addEventListener('click', function () { showScreen(btn.getAttribute('data-target')); });
+  });
+
+  document.addEventListener('click', function (e) {
+    var hotspot = e.target.closest('[data-goto]');
+    if (!hotspot) return;
+    if (hotspot.tagName === 'A') e.preventDefault();
+    showScreen(hotspot.getAttribute('data-goto'));
+  });
+
+  showScreen(navItems[0].getAttribute('data-target'));
+</script>
+</body>
+</html>
