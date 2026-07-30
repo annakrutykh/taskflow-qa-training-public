@@ -75,6 +75,11 @@ class LastProjectOwnerError(AppError):
     code = "LAST_PROJECT_OWNER"
 
 
+class LastAdminError(AppError):
+    status_code = 409
+    code = "LAST_ADMIN"
+
+
 class TooManyRequestsError(AppError):
     status_code = 429
     code = "TOO_MANY_REQUESTS"

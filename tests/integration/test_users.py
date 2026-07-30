@@ -120,6 +120,147 @@ class TestAdminOnlyUserManagement:
         assert resp.json()["error"]["code"] == "LAST_PROJECT_OWNER"
 
 
+def _make_sole_active_admin(client, admin_token):
+    """Промоутит свежего пользователя в ADMIN и деактивирует всех остальных
+    активных ADMIN (включая admin@example.com), чтобы получить контролируемый
+    сценарий "единственный активный администратор в системе".
+
+    Возвращает (target, deactivated_ids) — deactivated_ids нужно вернуть в
+    isActive=True через токен target по завершении теста (см.
+    TestLastAdminInvariant), иначе фикстура admin_token сломается для всех
+    следующих тестов в сессии (БД шарится, truncate — только в начале
+    pytest-сессии, не между тестами)."""
+    target = register_and_login(client)
+    promote = client.patch(
+        f"/api/v1/users/{target['user']['id']}/role",
+        json={"role": "ADMIN"},
+        headers=auth_headers(admin_token),
+    )
+    assert promote.status_code == 200
+
+    target_token = target["token"]
+    deactivated_ids = []
+    offset = 0
+
+    while True:
+        page = client.get(
+            f"/api/v1/users?limit=100&offset={offset}",
+            headers=auth_headers(target_token),
+        ).json()
+
+        for u in page["items"]:
+            if (
+                u["role"] == "ADMIN"
+                and u["isActive"]
+                and u["id"] != target["user"]["id"]
+            ):
+                resp = client.patch(
+                    f"/api/v1/users/{u['id']}/status",
+                    json={"isActive": False},
+                    headers=auth_headers(target_token),
+                )
+                assert resp.status_code == 200
+                deactivated_ids.append(u["id"])
+
+        if not page["hasNext"]:
+            break
+        offset += 100
+
+    return target, deactivated_ids
+
+
+def _restore_admins(client, restorer_token, ids):
+    for uid in ids:
+        client.patch(
+            f"/api/v1/users/{uid}/status",
+            json={"isActive": True},
+            headers=auth_headers(restorer_token),
+        )
+
+
+def _demote(client, restorer_token, user_id):
+    """Возвращает временного ADMIN-таргета обратно в USER — иначе он
+    остаётся активным администратором навсегда и портит инвариант
+    "последний ADMIN" для всех, кто работает с этой же БД вручную позже."""
+    client.patch(
+        f"/api/v1/users/{user_id}/role",
+        json={"role": "USER"},
+        headers=auth_headers(restorer_token),
+    )
+
+
+class TestLastAdminInvariant:
+    """В системе всегда должен остаться минимум один активный ADMIN
+    (docs/API_SPEC.md, раздел 3) — по аналогии с LAST_PROJECT_OWNER."""
+
+    def test_cannot_deactivate_last_active_admin(self, client, admin_token):
+        target, deactivated_ids = _make_sole_active_admin(client, admin_token)
+
+        try:
+            resp = client.patch(
+                f"/api/v1/users/{target['user']['id']}/status",
+                json={"isActive": False},
+                headers=auth_headers(target["token"]),
+            )
+            assert resp.status_code == 409
+            assert resp.json()["error"]["code"] == "LAST_ADMIN"
+        finally:
+            _restore_admins(client, target["token"], deactivated_ids)
+            _demote(client, admin_token, target["user"]["id"])
+
+    def test_cannot_demote_last_active_admin(self, client, admin_token):
+        target, deactivated_ids = _make_sole_active_admin(client, admin_token)
+
+        try:
+            resp = client.patch(
+                f"/api/v1/users/{target['user']['id']}/role",
+                json={"role": "USER"},
+                headers=auth_headers(target["token"]),
+            )
+            assert resp.status_code == 409
+            assert resp.json()["error"]["code"] == "LAST_ADMIN"
+        finally:
+            _restore_admins(client, target["token"], deactivated_ids)
+            _demote(client, admin_token, target["user"]["id"])
+
+    def test_cannot_delete_last_active_admin(self, client, admin_token):
+        target, deactivated_ids = _make_sole_active_admin(client, admin_token)
+
+        try:
+            resp = client.delete(
+                f"/api/v1/users/{target['user']['id']}",
+                headers=auth_headers(target["token"]),
+            )
+            assert resp.status_code == 409
+            assert resp.json()["error"]["code"] == "LAST_ADMIN"
+        finally:
+            _restore_admins(client, target["token"], deactivated_ids)
+            _demote(client, admin_token, target["user"]["id"])
+
+    def test_demoting_admin_when_others_remain_succeeds(self, client, admin_token):
+        first = register_and_login(client)
+        second = register_and_login(client)
+
+        for account in (first, second):
+            resp = client.patch(
+                f"/api/v1/users/{account['user']['id']}/role",
+                json={"role": "ADMIN"},
+                headers=auth_headers(admin_token),
+            )
+            assert resp.status_code == 200
+
+        resp = client.patch(
+            f"/api/v1/users/{first['user']['id']}/role",
+            json={"role": "USER"},
+            headers=auth_headers(admin_token),
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["role"] == "USER"
+
+        _demote(client, admin_token, second["user"]["id"])
+
+
 class TestUserSearch:
     """GET /users/search — доступно любому авторизованному (в отличие от
     GET /users), нужно для приглашения в проект по имени без ADMIN-доступа."""

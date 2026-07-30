@@ -49,6 +49,10 @@
 | `USER` | Обычный пользователь. Новый пользователь после `POST /auth/register` получает эту роль |
 | `ADMIN` | Полный доступ к управлению пользователями и метками, полный доступ ко всем проектам и задачам, обходит проверку членства в `project_members` |
 
+В системе всегда должен остаться минимум один активный `ADMIN` — это инвариант, поддерживаемый
+на уровне API (`LAST_ADMIN`, `409`): нельзя разжаловать, деактивировать или удалить последнего
+активного администратора (включая самого себя).
+
 ### Проектные роли (`project_members.role`)
 
 | Роль | Права |
@@ -132,6 +136,7 @@ scope soft delete — удаляются физически, каскад на `
 | `UNKNOWN_SORT_FIELD` | 400 | Неизвестное значение параметра `sort` в `GET /tasks` |
 | `MEMBER_ALREADY_EXISTS` | 409 | Пользователь уже участник проекта |
 | `LAST_PROJECT_OWNER` | 409 | Попытка удалить/разжаловать последнего `OWNER` проекта |
+| `LAST_ADMIN` | 409 | Попытка удалить/разжаловать/деактивировать последнего активного `ADMIN` |
 | `TOO_MANY_REQUESTS` | 429 | Превышен лимит запросов на `/auth/login`/`/auth/register` |
 | `INTERNAL_ERROR` | 500 | Необработанное исключение |
 
@@ -180,9 +185,9 @@ scope soft delete — удаляются физически, каскад на `
 | GET | `/users/search` | любой авторизованный | `200`, список `UserSearchResult` (без пагинации, до `limit`) | `401`, `422` (пустой `q`) |
 | GET | `/users` | `ADMIN` | `200`, список (пагинация) | `401`, `403` |
 | GET | `/users/{id}` | `ADMIN` | `200 UserResponse` | `401`, `403`, `404` |
-| PATCH | `/users/{id}/role` | `ADMIN` | `200 UserResponse` | `401`, `403`, `404`, `422` |
-| PATCH | `/users/{id}/status` | `ADMIN` | `200 UserResponse` | `401`, `403`, `404`, `422` |
-| DELETE | `/users/{id}` | `ADMIN` | `204`, soft delete | `401`, `403`, `404`, `409 LAST_PROJECT_OWNER` (последний `OWNER` проекта) |
+| PATCH | `/users/{id}/role` | `ADMIN` | `200 UserResponse` | `401`, `403`, `404`, `422`, `409 LAST_ADMIN` (разжалование последнего активного ADMIN) |
+| PATCH | `/users/{id}/status` | `ADMIN` | `200 UserResponse` | `401`, `403`, `404`, `422`, `409 LAST_ADMIN` (деактивация последнего активного ADMIN) |
+| DELETE | `/users/{id}` | `ADMIN` | `204`, soft delete | `401`, `403`, `404`, `409 LAST_PROJECT_OWNER` (последний `OWNER` проекта), `409 LAST_ADMIN` (последний активный ADMIN) |
 
 `UserResponse`: `id, email, firstName, lastName, role, isActive`.
 

@@ -7,8 +7,21 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.db_utils import get_active
-from app.core.errors import LastProjectOwnerError, NotFoundError
+from app.core.errors import LastAdminError, LastProjectOwnerError, NotFoundError
 from app.models import ProjectMember, ProjectRole, User
+
+
+def _other_active_admin_count(db: Session, user_id: int) -> int:
+    return (
+        db.query(User)
+        .filter(
+            User.role == "ADMIN",
+            User.is_active.is_(True),
+            User.deleted_at.is_(None),
+            User.id != user_id,
+        )
+        .count()
+    )
 
 
 def update_own_profile(
@@ -80,11 +93,21 @@ def update_role(db: Session, actor: User, user_id: int, role: str) -> User:
     """Меняет глобальную роль пользователя.
 
     Бросает: NotFoundError, если пользователь не найден.
+    Бросает: LastAdminError, если это последний активный ADMIN, а роль
+    меняется на не-ADMIN.
     """
     target_user = get_active(db, User, user_id)
 
     if not target_user:
         raise NotFoundError("User not found")
+
+    if (
+        target_user.role == "ADMIN"
+        and target_user.is_active
+        and role != "ADMIN"
+        and _other_active_admin_count(db, user_id) == 0
+    ):
+        raise LastAdminError("Cannot demote the last active admin")
 
     target_user.role = role
 
@@ -107,11 +130,21 @@ def update_status(db: Session, actor: User, user_id: int, is_active: bool) -> Us
     """Меняет статус активности пользователя.
 
     Бросает: NotFoundError, если пользователь не найден.
+    Бросает: LastAdminError, если это последний активный ADMIN, а статус
+    меняется на неактивный.
     """
     target_user = get_active(db, User, user_id)
 
     if not target_user:
         raise NotFoundError("User not found")
+
+    if (
+        not is_active
+        and target_user.role == "ADMIN"
+        and target_user.is_active
+        and _other_active_admin_count(db, user_id) == 0
+    ):
+        raise LastAdminError("Cannot deactivate the last active admin")
 
     target_user.is_active = is_active
 
@@ -134,6 +167,7 @@ def delete_user(db: Session, actor: User, user_id: int) -> None:
     """Удаляет пользователя (soft delete).
 
     Бросает: NotFoundError, если пользователь не найден.
+    Бросает: LastAdminError, если пользователь — последний активный ADMIN.
     Бросает: LastProjectOwnerError, если пользователь — последний OWNER
     хотя бы одного проекта.
     """
@@ -141,6 +175,13 @@ def delete_user(db: Session, actor: User, user_id: int) -> None:
 
     if not target_user:
         raise NotFoundError("User not found")
+
+    if (
+        target_user.role == "ADMIN"
+        and target_user.is_active
+        and _other_active_admin_count(db, user_id) == 0
+    ):
+        raise LastAdminError("Cannot delete the last active admin")
 
     owned_project_ids = [
         row.project_id
