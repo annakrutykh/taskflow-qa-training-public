@@ -80,6 +80,11 @@ class LastAdminError(AppError):
     code = "LAST_ADMIN"
 
 
+class MaxAdminsError(AppError):
+    status_code = 409
+    code = "MAX_ADMINS"
+
+
 class TooManyRequestsError(AppError):
     status_code = 429
     code = "TOO_MANY_REQUESTS"

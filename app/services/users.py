@@ -7,8 +7,15 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.db_utils import get_active
-from app.core.errors import LastAdminError, LastProjectOwnerError, NotFoundError
+from app.core.errors import (
+    LastAdminError,
+    LastProjectOwnerError,
+    MaxAdminsError,
+    NotFoundError,
+)
 from app.models import ProjectMember, ProjectRole, User
+
+MAX_ADMINS = 3
 
 
 def _other_active_admin_count(db: Session, user_id: int) -> int:
@@ -95,6 +102,8 @@ def update_role(db: Session, actor: User, user_id: int, role: str) -> User:
     Бросает: NotFoundError, если пользователь не найден.
     Бросает: LastAdminError, если это последний активный ADMIN, а роль
     меняется на не-ADMIN.
+    Бросает: MaxAdminsError, если роль меняется на ADMIN, а лимит
+    активных админов (MAX_ADMINS) уже достигнут.
     """
     target_user = get_active(db, User, user_id)
 
@@ -108,6 +117,13 @@ def update_role(db: Session, actor: User, user_id: int, role: str) -> User:
         and _other_active_admin_count(db, user_id) == 0
     ):
         raise LastAdminError("Cannot demote the last active admin")
+
+    if (
+        target_user.role != "ADMIN"
+        and role == "ADMIN"
+        and _other_active_admin_count(db, user_id) >= MAX_ADMINS
+    ):
+        raise MaxAdminsError(f"Cannot have more than {MAX_ADMINS} active admins")
 
     target_user.role = role
 

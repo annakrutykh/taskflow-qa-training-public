@@ -67,6 +67,8 @@ class TestAdminOnlyUserManagement:
         assert resp.status_code == 200
         assert resp.json()["role"] == "ADMIN"
 
+        _demote(client, admin_token, account["user"]["id"])
+
     def test_non_admin_cannot_change_role(self, client):
         account = register_and_login(client)
         other = register_and_login(client)
@@ -259,6 +261,37 @@ class TestLastAdminInvariant:
         assert resp.json()["role"] == "USER"
 
         _demote(client, admin_token, second["user"]["id"])
+
+
+class TestMaxAdminsInvariant:
+    """Не более 3 одновременно активных ADMIN — docs/API_SPEC.md, раздел 3."""
+
+    def test_cannot_promote_beyond_max_admins(self, client, admin_token):
+        # admin@example.com — уже 1 активный ADMIN, промоутим ещё двух до лимита в 3.
+        promoted_ids = []
+
+        try:
+            for _ in range(2):
+                account = register_and_login(client)
+                resp = client.patch(
+                    f"/api/v1/users/{account['user']['id']}/role",
+                    json={"role": "ADMIN"},
+                    headers=auth_headers(admin_token),
+                )
+                assert resp.status_code == 200
+                promoted_ids.append(account["user"]["id"])
+
+            over_limit = register_and_login(client)
+            resp = client.patch(
+                f"/api/v1/users/{over_limit['user']['id']}/role",
+                json={"role": "ADMIN"},
+                headers=auth_headers(admin_token),
+            )
+            assert resp.status_code == 409
+            assert resp.json()["error"]["code"] == "MAX_ADMINS"
+        finally:
+            for uid in promoted_ids:
+                _demote(client, admin_token, uid)
 
 
 class TestUserSearch:
