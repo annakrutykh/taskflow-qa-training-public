@@ -206,6 +206,7 @@ class TaskResponse(BaseModel):
 
     id: int
     project_id: int = Field(alias="projectId")
+    project_name: str = Field(alias="projectName")
     assignee_id: int | None = Field(default=None, alias="assigneeId")
     assignee_first_name: str | None = Field(default=None, alias="assigneeFirstName")
     assignee_last_name: str | None = Field(default=None, alias="assigneeLastName")

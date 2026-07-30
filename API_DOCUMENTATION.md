@@ -470,14 +470,17 @@ API. Ошибка `409 LAST_ADMIN`, если это последний акти�
 
 Ответ включает поле `labels` --- список меток, привязанных к задаче,
 `commentsCount` --- число неудалённых комментариев (считается на уровне
-SQL, без отдельного запроса к `/comments`), и `assigneeFirstName`/
-`assigneeLastName` --- имя исполнителя (`null`, если `assigneeId` не
-задан):
+SQL, без отдельного запроса к `/comments`), `projectName` --- название
+проекта (отдаётся всегда, даже без доступа к самому проекту --- это
+единственный способ узнать, из какого проекта задача, для исполнителя
+без членства), и `assigneeFirstName`/`assigneeLastName` --- имя
+исполнителя (`null`, если `assigneeId` не задан):
 
 ``` json
 {
   "id": 1,
   "projectId": 1,
+  "projectName": "Mobile Banking",
   "assigneeId": 2,
   "assigneeFirstName": "Иван",
   "assigneeLastName": "Иванов",

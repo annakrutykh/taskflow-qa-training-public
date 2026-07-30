@@ -248,6 +248,19 @@ class Task(Base):
     def assignee_last_name(self) -> str | None:
         return self.assignee.last_name if self.assignee else None
 
+    # Исполнитель без членства в проекте не видит сам проект (GET /projects
+    # отдаёт только те, где ты участник) — без этого поля "Мои задачи" не
+    # смог бы показать название проекта для такой задачи вообще ничем,
+    # кроме "#id".
+    # viewonly — только для чтения имени проекта; запись через эту связь не
+    # используется нигде (иначе конфликтует с Project.tasks на той же паре
+    # колонок, SAWarning).
+    project = relationship("Project", lazy="joined", viewonly=True)
+
+    @property
+    def project_name(self) -> str:
+        return self.project.name
+
 
 class Comment(Base):
     __tablename__ = "comments"

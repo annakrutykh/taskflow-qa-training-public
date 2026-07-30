@@ -31,6 +31,43 @@ class TestCreateTask:
         assert body["assigneeFirstName"] is None
         assert body["assigneeLastName"] is None
 
+    def test_project_name_is_included(self, client):
+        owner = register_and_login(client)
+        project_id = create_project(
+            client, owner["token"], name="Distinctive Project Name"
+        )
+
+        resp = client.post(
+            "/api/v1/tasks",
+            json={"projectId": project_id, "title": "Do the thing"},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 201
+        assert resp.json()["projectName"] == "Distinctive Project Name"
+
+    def test_project_name_visible_to_non_member_assignee(self, client):
+        """Исполнитель без членства в проекте всё равно узнаёт название
+        проекта из TaskResponse — иначе кросс-проектный список задач не
+        смог бы его показать (GET /projects ему проект не отдаст)."""
+        owner = register_and_login(client)
+        assignee = register_and_login(client)
+        project_id = create_project(client, owner["token"], name="Owner-Only Project")
+        task = create_task(
+            client,
+            owner["token"],
+            project_id,
+            title="Assigned elsewhere",
+            assigneeId=assignee["user"]["id"],
+        )
+
+        resp = client.get("/api/v1/tasks", headers=auth_headers(assignee["token"]))
+
+        assert resp.status_code == 200
+        items = resp.json()["items"]
+        found = next(t for t in items if t["id"] == task["id"])
+        assert found["projectName"] == "Owner-Only Project"
+
     def test_assignee_name_is_included(self, client):
         owner = register_and_login(client)
         assignee = register_and_login(client)

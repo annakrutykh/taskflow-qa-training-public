@@ -234,7 +234,7 @@ lastName, email` — без `role`/`isActive`, это не замена адми
 
 `TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), assigneeId (опционально, должен существовать)`.
 `TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
-`TaskResponse`: `id, projectId, assigneeId, assigneeFirstName, assigneeLastName, title, description, status, priority, labels: LabelResponse[], commentsCount` — `assigneeFirstName`/`assigneeLastName` — `null`, если `assigneeId` не задан; `commentsCount` — число неудалённых комментариев задачи, посчитано на уровне SQL (без отдельного запроса).
+`TaskResponse`: `id, projectId, projectName, assigneeId, assigneeFirstName, assigneeLastName, title, description, status, priority, labels: LabelResponse[], commentsCount` — `projectName` отдаётся всегда, даже если у вызывающего нет доступа к самому проекту (например, исполнитель задачи без членства — иначе кросс-проектный список задач не смог бы показать, из какого проекта задача); `assigneeFirstName`/`assigneeLastName` — `null`, если `assigneeId` не задан; `commentsCount` — число неудалённых комментариев задачи, посчитано на уровне SQL (без отдельного запроса).
 
 ### 6.5 Comments
 
