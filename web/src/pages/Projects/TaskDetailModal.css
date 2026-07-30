@@ -1,0 +1,110 @@
+.task-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.task-detail__description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+}
+
+.task-detail__meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.task-detail__meta-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.task-detail__meta-value {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-sm);
+}
+
+.task-detail__comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.task-detail__comments-title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.task-detail__comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.task-detail__comment {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.task-detail__comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.task-detail__comment-author {
+  font-weight: 550;
+  font-size: var(--fs-sm);
+}
+
+.task-detail__comment-text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+}
+
+.task-detail__comment-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.task-detail__comment-form {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.task-detail__comment-form .field__input {
+  flex: 1;
+  resize: vertical;
+}
+
+.task-detail__comment-edit .field__input {
+  resize: vertical;
+}

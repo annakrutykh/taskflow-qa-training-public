@@ -1,0 +1,134 @@
+.tasks-section__filters {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.tasks-section__search-input {
+  flex: 1;
+  max-width: 280px;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-input);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+}
+
+.tasks-section__search-input::placeholder {
+  color: var(--color-text-faint);
+}
+
+.tasks-section__title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 40ch;
+}
+
+.tasks-section__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tasks-section__title {
+  font-weight: 550;
+}
+
+.tasks-section__title--link {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.tasks-section__title--link:hover {
+  color: var(--color-accent);
+}
+
+.tasks-section__comments-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+.tasks-section__task-description {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tasks-section__unassigned {
+  color: var(--color-text-faint);
+}
+
+.tasks-section__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.tasks-section__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.tasks-section__pagination-info {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--color-text-faint);
+}
+
+.tasks-section__label-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: 2px;
+}
+
+.tasks-section__label-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-dim);
+  color: var(--color-accent-strong);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.tasks-section__label-chip--toggle {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-input);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.tasks-section__label-chip--toggle:hover {
+  background: var(--color-bg);
+}
+
+.tasks-section__label-chip--active {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-dim);
+  color: var(--color-accent-strong);
+}
+
+.tasks-section__label-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tasks-section__label-empty {
+  font-size: var(--fs-sm);
+  color: var(--color-text-faint);
+}

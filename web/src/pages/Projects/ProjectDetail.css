@@ -1,0 +1,188 @@
+.project-detail {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.project-detail__back {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  width: fit-content;
+}
+
+.project-detail__back:hover {
+  color: var(--color-accent);
+}
+
+.project-detail__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.project-detail__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.project-detail__description {
+  color: var(--color-text-muted);
+  font-size: var(--fs-base);
+  max-width: 60ch;
+  margin-top: var(--space-2);
+}
+
+.project-detail__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.project-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.project-detail__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.project-detail__section-title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.project-detail__banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-error-dim);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--fs-sm);
+  color: var(--color-error);
+}
+
+.project-detail__member-role {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.project-detail__role-select {
+  height: 32px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-input);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.project-detail__role-select:disabled {
+  opacity: 0.6;
+}
+
+.member-you-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--space-2);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-dim);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.member-picker {
+  margin-top: var(--space-2);
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.member-picker__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-input);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.member-picker__item:last-child {
+  border-bottom: none;
+}
+
+.member-picker__item:hover:not(:disabled) {
+  background: var(--color-accent-dim);
+}
+
+.member-picker__item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.member-picker__name {
+  font-weight: 550;
+}
+
+.member-picker__email {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--color-text-faint);
+}
+
+.member-picker__selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-accent-border);
+  background: var(--color-accent-dim);
+  border-radius: var(--radius-md);
+}
+
+.member-picker__selected .member-picker__name {
+  display: block;
+}
+
+.member-picker__selected .member-picker__email {
+  display: block;
+  margin-top: 2px;
+}
+
+.member-picker__empty {
+  padding: var(--space-4);
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-faint);
+}

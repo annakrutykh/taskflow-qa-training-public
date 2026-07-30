@@ -1,0 +1,115 @@
+/* ==========================================================================
+   Design Tokens — "Amber Ledger" aesthetic
+   Editorial serif headlines over a warm paper backdrop with a fine
+   technical grid. Light-theme evolution of the original dark "Amber
+   Terminal": same bones (serif + mono, one warm accent), lighter surface.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ---- Color: surfaces ---- */
+  --color-bg: #faf7f0;
+  --color-bg-elevated: #f2eee2;
+  --color-bg-input: #ffffff;
+  --color-bg-input-focus: #fffdf8;
+
+  /* ---- Color: borders ---- */
+  --color-border: #e4ddcc;
+  --color-border-strong: #d1c8b2;
+  --color-border-focus: #c1611f;
+
+  /* ---- Color: text ---- */
+  --color-text: #211d15;
+  --color-text-muted: #6c6656;
+  --color-text-faint: #a49c85;
+
+  /* ---- Color: accent (burnt terracotta — deep enough for AA contrast on paper) ---- */
+  --color-accent: #c1611f;
+  --color-accent-strong: #9c4d16;
+  --color-accent-dim: rgba(193, 97, 31, 0.1);
+  --color-accent-border: rgba(193, 97, 31, 0.35);
+  --color-on-accent: #fdf9f0;
+
+  /* ---- Color: semantic ---- */
+  --color-error: #b23a26;
+  --color-error-dim: rgba(178, 58, 38, 0.08);
+  --color-error-hover: #96301f;
+  --color-success: #2f7d52;
+  --color-success-dim: rgba(47, 125, 82, 0.08);
+
+  /* ---- Typography ---- */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 2rem;
+  --fs-2xl: 2.75rem;
+  --fs-3xl: 3.75rem;
+
+  /* ---- Spacing (4px base) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ---- Radius ---- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-full: 999px;
+
+  /* ---- Shadow ---- */
+  --shadow-card: 0 24px 64px -24px rgba(0, 0, 0, 0.6);
+  --shadow-focus: 0 0 0 3px var(--color-accent-dim);
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 140ms;
+  --duration-base: 260ms;
+  --duration-slow: 480ms;
+
+  /* ==========================================================================
+     Ниже — токены сверх исходного auth-набора. Нужны остальным компонентам
+     приложения (Button/Card/Table/Modal/Toast/Badge/AppShell и т.д.),
+     которых не было в присланном наборе (он покрывал только формы входа).
+     Значения подобраны в тон уже заданной палитре/шрифтам выше, старый
+     дизайн форм эта секция не переопределяет и не трогает.
+     ========================================================================== */
+
+  /* Composite transition-токены — то же duration+easing одной переменной,
+     как раньше использовалось в Button/Card/Modal/Toast/Skeleton. */
+  --transition-fast: var(--duration-fast) var(--ease-out);
+  --transition-base: var(--duration-base) var(--ease-out);
+
+  /* Тени для обычных UI-элементов (карточки, таблицы, модалки) — --shadow-card
+     из auth-набора слишком тяжёлая для повседневных элементов, тонирована
+     в цвет --color-text, чтобы не выбиваться из палитры. */
+  --shadow-sm: 0 1px 2px rgba(33, 29, 21, 0.07);
+  --shadow-md: 0 4px 10px -2px rgba(33, 29, 21, 0.09), 0 2px 4px -2px rgba(33, 29, 21, 0.07);
+  --shadow-lg: 0 20px 32px -8px rgba(33, 29, 21, 0.16), 0 6px 10px -4px rgba(33, 29, 21, 0.09);
+  --shadow-accent: 0 8px 20px -4px rgba(193, 97, 31, 0.35);
+
+  /* warning/info — семантические цвета для бейджей приоритета задач и т.п.,
+     в auth-наборе их не было (там только error/success). */
+  --color-warning: #a9700f;
+  --color-warning-soft: #f7ecd9;
+  --color-info: #3d6f8f;
+  --color-info-soft: #e8eff2;
+
+  --sidebar-width: 240px;
+  --header-height: 64px;
+}

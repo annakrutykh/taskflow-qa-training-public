@@ -78,5 +78,18 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_started
+  web:
+    # Веб-интерфейс TaskFlow поверх API (React + Vite, статика через nginx).
+    # VITE_API_BASE_URL зашивается в сборку на этапе build (Vite так
+    # работает с env-переменными) — поменять после старта контейнера
+    # environment-секцией нельзя, нужен build.args + пересборка образа.
+    build:
+      context: ./web
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+    ports: ["3000:80"]
+    depends_on:
+      api:
+        condition: service_started
 volumes:
   taskflow_data:

@@ -1,0 +1,34 @@
+.my-tasks-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.my-tasks-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.my-tasks-page__subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.my-tasks-page__select {
+  height: 32px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-input);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.my-tasks-page__select:disabled {
+  opacity: 0.6;
+}

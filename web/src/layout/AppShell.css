@@ -1,0 +1,150 @@
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  background: var(--color-bg-input);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.app-shell__nav-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.app-shell__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-md);
+  letter-spacing: -0.01em;
+}
+
+.app-shell__nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-input);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  transition: border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.app-shell__nav-pill:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.app-shell__nav-pill:focus-visible,
+.app-shell__profile-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.app-shell__nav-pill--active {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-dim);
+  color: var(--color-accent-strong);
+}
+
+/* Админ-панель — особые права, поэтому кнопка отличается цветом даже
+   в неактивном состоянии, а не только при наведении/на своей странице.
+   Только цвет рамки/текста, БЕЗ заливки фона — иначе состояние в покое
+   визуально неотличимо от --active (та же заливка --color-accent-dim),
+   и на других страницах кажется, что подсвечены сразу два пункта меню. */
+.app-shell__nav-pill--accent {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-strong);
+}
+
+.app-shell__nav-pill--accent:hover {
+  background: var(--color-accent-dim);
+}
+
+.app-shell__nav-pill--accent.app-shell__nav-pill--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.app-shell__logo-mark {
+  width: 26px;
+  height: 26px;
+  display: block;
+  box-shadow: var(--shadow-accent);
+}
+
+.app-shell__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-shell__profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.app-shell__profile-link:hover {
+  background: var(--color-bg);
+}
+
+.app-shell__profile-link--active {
+  background: var(--color-accent-dim);
+}
+
+.app-shell__profile-link--active .app-shell__user-name {
+  color: var(--color-accent-strong);
+}
+
+.app-shell__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-dim);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-sm);
+  font-weight: 650;
+}
+
+.app-shell__user-name {
+  font-size: var(--fs-sm);
+  font-weight: 550;
+}
+
+.app-shell__main {
+  flex: 1;
+}
