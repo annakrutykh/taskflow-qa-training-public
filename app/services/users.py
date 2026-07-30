@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
@@ -38,6 +39,28 @@ def list_users(db: Session, limit: int, offset: int) -> tuple[list[User], int]:
     items = query.offset(offset).limit(limit).all()
 
     return items, total
+
+
+def search_users(db: Session, query: str, limit: int) -> list[User]:
+    """Ищет активных пользователей по имени/фамилии/email — для приглашения
+    в проект (доступно любому авторизованному, в отличие от полного списка
+    в list_users, который ADMIN-only)."""
+    pattern = f"%{query.strip()}%"
+
+    return (
+        db.query(User)
+        .filter(
+            User.deleted_at.is_(None),
+            or_(
+                User.first_name.ilike(pattern),
+                User.last_name.ilike(pattern),
+                User.email.ilike(pattern),
+            ),
+        )
+        .order_by(User.first_name.asc(), User.last_name.asc())
+        .limit(limit)
+        .all()
+    )
 
 
 def get_user(db: Session, user_id: int) -> User:

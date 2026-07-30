@@ -155,6 +155,18 @@ class UserResponse(BaseModel):
     is_active: bool = Field(alias="isActive")
 
 
+class UserSearchResult(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+    )
+
+    id: int
+    first_name: str = Field(alias="firstName")
+    last_name: str = Field(alias="lastName")
+    email: EmailStr
+
+
 class TokenResponse(BaseModel):
     accessToken: str
     tokenType: str
@@ -181,6 +193,8 @@ class ProjectMemberResponse(BaseModel):
 
     user_id: int = Field(alias="userId")
     role: ProjectRole
+    first_name: str = Field(alias="firstName")
+    last_name: str = Field(alias="lastName")
 
 
 class LabelResponse(BaseModel):

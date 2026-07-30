@@ -177,6 +177,7 @@ scope soft delete — удаляются физически, каскад на `
 |---|---|---|---|---|
 | GET | `/users/me` | любой авторизованный | `200 UserResponse` | `401` |
 | PATCH | `/users/me` | любой авторизованный | `200 UserResponse` | `401`, `422` |
+| GET | `/users/search` | любой авторизованный | `200`, список `UserSearchResult` (без пагинации, до `limit`) | `401`, `422` (пустой `q`) |
 | GET | `/users` | `ADMIN` | `200`, список (пагинация) | `401`, `403` |
 | GET | `/users/{id}` | `ADMIN` | `200 UserResponse` | `401`, `403`, `404` |
 | PATCH | `/users/{id}/role` | `ADMIN` | `200 UserResponse` | `401`, `403`, `404`, `422` |
@@ -184,6 +185,14 @@ scope soft delete — удаляются физически, каскад на `
 | DELETE | `/users/{id}` | `ADMIN` | `204`, soft delete | `401`, `403`, `404`, `409 LAST_PROJECT_OWNER` (последний `OWNER` проекта) |
 
 `UserResponse`: `id, email, firstName, lastName, role, isActive`.
+
+`GET /users/search?q=&limit=` — поиск по подстроке в имени/фамилии/email
+(регистронезависимо), доступен любому авторизованному пользователю в отличие
+от полного `GET /users` (`ADMIN`-only). Нужен, чтобы обычный участник мог
+найти коллегу по имени при добавлении в проект, не имея доступа к
+административному списку пользователей. `UserSearchResult`: `id, firstName,
+lastName, email` — без `role`/`isActive`, это не замена административного
+списка. `q` обязателен (мин. 1 символ), `limit` по умолчанию 20 (макс. 50).
 
 ### 6.3 Projects
 

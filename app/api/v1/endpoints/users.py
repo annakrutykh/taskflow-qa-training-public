@@ -7,6 +7,7 @@ from app.schemas import (
     Page,
     UserResponse,
     UserRoleUpdate,
+    UserSearchResult,
     UserStatusUpdate,
     UserUpdate,
 )
@@ -18,6 +19,7 @@ from app.services.users import (
 )
 from app.services.users import (
     list_users,
+    search_users,
     update_own_profile,
     update_role,
     update_status,
@@ -81,6 +83,27 @@ def users(
         "offset": offset,
         "hasNext": offset + len(items) < total,
     }
+
+
+@router.get(
+    "/search",
+    response_model=list[UserSearchResult],
+    summary="Найти пользователя по имени/email",
+    description="Доступно любому авторизованному пользователю (в отличие от "
+    "полного списка GET /users) — минимальный набор полей, без роли и "
+    "статуса, чтобы пригласить нужного человека в проект по имени.",
+    responses={
+        200: {"description": "Результаты поиска (может быть пустым)"},
+        401: {"description": "Не авторизован"},
+    },
+)
+def search_users_endpoint(
+    q: str = Query(..., min_length=1, max_length=100),
+    limit: int = Query(20, ge=1, le=50),
+    _=Depends(cur),
+    db: Session = Depends(get_db),
+):
+    return search_users(db, q, limit)
 
 
 @router.get(

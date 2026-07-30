@@ -154,6 +154,9 @@ class ProjectMember(Base):
         primary_key=True,
         index=True,
     )
+    # lazy="joined" — участников проекта всегда показывают с именем
+    # (ProjectMemberResponse), joined избегает N+1 при листинге.
+    user = relationship("User", lazy="joined")
 
     role = Column(
         Enum(ProjectRole),
@@ -164,6 +167,14 @@ class ProjectMember(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+
+    @property
+    def first_name(self) -> str:
+        return self.user.first_name
+
+    @property
+    def last_name(self) -> str:
+        return self.user.last_name
 
 
 class Task(Base):
