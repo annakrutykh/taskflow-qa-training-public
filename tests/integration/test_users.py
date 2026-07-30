@@ -338,7 +338,7 @@ class TestUserSearch:
         assert resp.status_code == 200
         emails = {u["email"] for u in resp.json()}
         assert target["email"] in emails
-        assert "role" not in resp.json()[0]
+        assert resp.json()[0]["role"] == "USER"
         assert "isActive" not in resp.json()[0]
 
     def test_search_by_email_substring(self, client):
@@ -378,7 +378,10 @@ class TestUserSearch:
                 f"/api/v1/users/search?q=Adminov{tag}",
                 headers=auth_headers(searcher["token"]),
             )
-            assert target["email"] in {u["email"] for u in without_filter.json()}
+            found = next(
+                u for u in without_filter.json() if u["email"] == target["email"]
+            )
+            assert found["role"] == "ADMIN"
 
             with_filter = client.get(
                 f"/api/v1/users/search?q=Adminov{tag}&excludeAdmins=true",

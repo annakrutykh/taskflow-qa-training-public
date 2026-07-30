@@ -172,6 +172,10 @@ class UserSearchResult(BaseModel):
     first_name: str = Field(alias="firstName")
     last_name: str = Field(alias="lastName")
     email: EmailStr
+    # Без isActive (не замена GET /users) — но role нужна, чтобы UI мог
+    # заранее показать, что при добавлении в проект роль будет форсирована
+    # в ADMIN (см. app.services.projects.add_member).
+    role: UserRole
 
 
 class TokenResponse(BaseModel):
