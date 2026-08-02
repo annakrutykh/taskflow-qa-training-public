@@ -35,7 +35,15 @@ def register_user(
 
     Бросает: EmailAlreadyExistsError, если email уже занят активным
     пользователем.
+
+    D-03: по умолчанию email приводится к нижнему регистру перед проверкой
+    и сохранением — уникальность регистронезависима. При включённом
+    дефекте нормализация пропускается, и Test1@example.com /
+    test1@example.com регистрируются как два разных пользователя.
     """
+    if not defects.is_enabled("D-03"):
+        email = email.strip().lower()
+
     if db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first():
         raise EmailAlreadyExistsError("Такой email уже зарегистрирован")
 
@@ -65,6 +73,9 @@ def authenticate_user(db: Session, email: str, password: str) -> str:
     """
     if defects.is_enabled("D-17"):
         logger.warning(f"Login attempt: email={email} password={password}")
+
+    if not defects.is_enabled("D-03"):
+        email = email.strip().lower()
 
     user = db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first()
 

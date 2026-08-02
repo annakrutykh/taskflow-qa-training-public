@@ -65,7 +65,9 @@ class User(Base):
 
     # Не unique=True: уникальность только среди активных строк (см.
     # ix_users_email_active_unique ниже) — email освобождается после
-    # soft delete (ADR-08).
+    # soft delete (ADR-08). Регистронезависимость обеспечивается на уровне
+    # приложения (email нормализуется в нижний регистр перед записью — см.
+    # app/services/auth.py, D-03), а не отдельным функциональным индексом.
     email = Column(String(255), nullable=False)
 
     password_hash = Column(String(255), nullable=False)

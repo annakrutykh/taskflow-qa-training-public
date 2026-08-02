@@ -11,7 +11,13 @@ docs/internal/KNOWN_DEFECTS.md, раздел D) и остаётся ручной
 
 import logging
 
-from tests.conftest import auth_headers, create_project, create_task, register_and_login
+from tests.conftest import (
+    auth_headers,
+    create_project,
+    create_task,
+    register_and_login,
+    unique_email,
+)
 
 
 def test_d01_priority_sort_is_logical_by_default(client):
@@ -47,6 +53,26 @@ def test_d04_labels_field_present_in_task_response(client):
     )
 
     assert "labels" in resp.json()
+
+
+def test_d03_email_uniqueness_is_case_insensitive_by_default(client):
+    email = unique_email()
+    payload = {
+        "email": email,
+        "password": "Password123!",
+        "firstName": "A",
+        "lastName": "B",
+    }
+
+    first = client.post("/api/v1/auth/register", json=payload)
+    assert first.status_code == 201
+
+    second = client.post(
+        "/api/v1/auth/register",
+        json={**payload, "email": email.upper()},
+    )
+    assert second.status_code == 409
+    assert second.json()["error"]["code"] == "EMAIL_ALREADY_EXISTS"
 
 
 def test_d17_password_never_appears_in_logs(client, caplog):

@@ -43,6 +43,25 @@ class TestRegister:
         assert second.status_code == 409
         assert second.json()["error"]["code"] == "EMAIL_ALREADY_EXISTS"
 
+    def test_duplicate_email_different_case_is_conflict(self, client):
+        email = unique_email()
+        payload = {
+            "email": email,
+            "password": "Password123!",
+            "firstName": "A",
+            "lastName": "B",
+        }
+
+        first = client.post("/api/v1/auth/register", json=payload)
+        assert first.status_code == 201
+
+        second = client.post(
+            "/api/v1/auth/register",
+            json={**payload, "email": email.upper()},
+        )
+        assert second.status_code == 409
+        assert second.json()["error"]["code"] == "EMAIL_ALREADY_EXISTS"
+
     def test_short_password_is_validation_error(self, client):
         resp = client.post(
             "/api/v1/auth/register",
@@ -107,6 +126,16 @@ class TestLogin:
         body = resp.json()
         assert body["tokenType"] == "bearer"
         assert isinstance(body["accessToken"], str) and body["accessToken"]
+
+    def test_login_is_case_insensitive_on_email(self, client):
+        account = register_and_login(client)
+
+        resp = client.post(
+            "/api/v1/auth/login",
+            json={"email": account["email"].upper(), "password": account["password"]},
+        )
+
+        assert resp.status_code == 200
 
     def test_wrong_password_is_invalid_credentials(self, client):
         account = register_and_login(client)
