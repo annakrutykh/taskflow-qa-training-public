@@ -8,6 +8,11 @@ __pycache__/
 venv/
 env/
 
+# Environment overrides — значение по умолчанию зашито в docker-compose.yml
+# (TRAINING_DEFECTS), .env нужен только для персональных переопределений
+# от преподавателя и в репозиторий не должен попадать.
+.env
+
 # IDE
 .idea/
 .vscode/
