@@ -3,6 +3,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from app.core.defects import defects
+
 
 class UserRole(StrEnum):
     USER = "USER"
@@ -57,6 +59,20 @@ class Register(BaseModel):
 class Login(BaseModel):
     email: EmailStr
     password: str
+
+    @field_validator("password")
+    @classmethod
+    def password_must_not_be_empty(cls, value: str) -> str:
+        """D-18: по умолчанию пустой пароль отклоняется на уровне валидации
+        запроса (422 VALIDATION_ERROR) — POST /auth/login явно допускает
+        этот код в docs/API_SPEC.md (раздел 6, наравне с 401
+        INVALID_CREDENTIALS). При включённом дефекте проверка пропускается,
+        и пустая строка доходит до authenticate_user — там она просто не
+        совпадает с хэшем, и вместо 422 отдаётся 401 INVALID_CREDENTIALS.
+        """
+        if not defects.is_enabled("D-18") and value == "":
+            raise ValueError("Пароль не может быть пустым")
+        return value
 
 
 class UserUpdate(BaseModel):
