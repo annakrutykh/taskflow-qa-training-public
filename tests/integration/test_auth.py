@@ -172,6 +172,16 @@ class TestLogin:
 
         assert resp.status_code == 422
 
+    def test_empty_password_is_validation_error(self, client):
+        # D-18: пустой пароль — ошибка валидации (422), а не INVALID_CREDENTIALS (401).
+        resp = client.post(
+            "/api/v1/auth/login",
+            json={"email": unique_email(), "password": ""},
+        )
+
+        assert resp.status_code == 422
+        assert resp.json()["error"]["code"] == "VALIDATION_ERROR"
+
 
 class TestTokenValidation:
     @pytest.mark.smoke

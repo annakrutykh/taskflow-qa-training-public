@@ -69,7 +69,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       ELASTICSEARCH_URL: http://elasticsearch:9200
       JWT_SECRET: taskflow-secret
-      TRAINING_DEFECTS: ${TRAINING_DEFECTS:-D-01,D-02,D-03,D-04,D-17}
+      TRAINING_DEFECTS: ${TRAINING_DEFECTS:-D-01,D-02,D-03,D-04,D-17,D-18}
     ports: ["8000:8000"]
     depends_on:
       db:
