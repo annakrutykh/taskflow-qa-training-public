@@ -17,7 +17,7 @@ class Settings:
         for origin in os.getenv("CORS_ORIGINS", "*").split(",")
         if origin.strip()
     ]
-    training_defects: str = os.getenv("TRAINING_DEFECTS", "")
+    training_defects_disabled: str = os.getenv("TRAINING_DEFECTS_DISABLED", "")
 
 
 settings = Settings()

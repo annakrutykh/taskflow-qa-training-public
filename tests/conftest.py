@@ -42,6 +42,12 @@ os.environ.setdefault("RATE_LIMIT_REGISTER_MAX_ATTEMPTS", "100000")
 # Elasticsearch — тяжёлая инфраструктура, не нужна для pytest (см. docs/TESTING.md):
 # отправку логов в ES проверяем вручную через docker compose, не в тестах.
 os.environ.setdefault("ELASTICSEARCH_ENABLED", "false")
+# TRAINING_DEFECTS_DISABLED — чёрный список (app/core/defects.py), пустое
+# значение означает "не выключено ничего", т.е. все учебные дефекты
+# активны. Тестовый набор — регрессия против docs/API_SPEC.md, поэтому
+# ему всегда нужно "ALL": сам он дефект точечно не воспроизводит
+# (см. tests/integration/test_defects_regression.py).
+os.environ.setdefault("TRAINING_DEFECTS_DISABLED", "ALL")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
