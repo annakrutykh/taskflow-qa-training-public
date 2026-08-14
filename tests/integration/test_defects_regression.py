@@ -100,3 +100,15 @@ def test_d18_empty_password_is_validation_error_by_default(client):
 
     assert resp.status_code == 422
     assert resp.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_d19_whitespace_only_search_returns_empty_by_default(client):
+    owner = register_and_login(client)
+
+    resp = client.get(
+        "/api/v1/users/search?q=%20&limit=20",
+        headers=auth_headers(owner["token"]),
+    )
+
+    assert resp.status_code == 200
+    assert resp.json() == []
