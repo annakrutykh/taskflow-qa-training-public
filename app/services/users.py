@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.db_utils import get_active
+from app.core.defects import defects
 from app.core.errors import (
     LastAdminError,
     LastProjectOwnerError,
@@ -64,8 +65,20 @@ def list_users(db: Session, limit: int, offset: int) -> tuple[list[User], int]:
 def search_users(db: Session, query: str, limit: int) -> list[User]:
     """Ищет активных пользователей по имени/фамилии/email — для приглашения
     в проект или выбора исполнителя задачи (доступно любому авторизованному,
-    в отличие от полного списка в list_users, который ADMIN-only)."""
-    pattern = f"%{query.strip()}%"
+    в отличие от полного списка в list_users, который ADMIN-only).
+
+    D-19: по умолчанию запрос из одних пробельных символов схлопывается
+    после .strip() в пустую строку — ILIKE-паттерн "%%" матчит всех
+    пользователей, отдавая по факту список уровня ADMIN-only GET /users
+    любому авторизованному. При отключённом дефекте такой запрос вместо
+    этого возвращает пустой список.
+    """
+    stripped = query.strip()
+
+    if not defects.is_enabled("D-19") and not stripped:
+        return []
+
+    pattern = f"%{stripped}%"
 
     return (
         db.query(User)
