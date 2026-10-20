@@ -237,7 +237,7 @@ scope soft delete — удаляются физически, каскад на `
 | DELETE | `/projects/{id}/members/{userId}` | `OWNER` или `ADMIN` | `204` | `401`, `403`, `404`, `409 LAST_PROJECT_OWNER` |
 
 `ProjectCreate`: `name (1–100), description (опционально, ≤1000)`.
-`ProjectUpdate`: любое подмножество `name (1–100), description (≤1000), status (ACTIVE|ARCHIVED)`.
+`ProjectUpdate`: любое подмножество `name (1–100), description (≤1000), status (ACTIVE|ARCHIVED)` — `name` и `status` можно не передавать, но явный `null` в них — `422 VALIDATION_ERROR`; `description: null` очищает описание.
 `ProjectResponse`: `id, name, description, status, ownerId`.
 `ProjectMemberCreate`: `userId, role (OWNER|MANAGER|VIEWER, default VIEWER)` — `ADMIN`
 синтаксически тоже валидное значение enum, но отклоняется бизнес-логикой (см. раздел 3.2).
@@ -259,7 +259,7 @@ scope soft delete — удаляются физически, каскад на `
 алфавиту строки.
 
 `TaskCreate`: `projectId, title (1–100), description (≤1000), priority (LOW|MEDIUM|HIGH, default MEDIUM), assigneeId (опционально, должен существовать)`.
-`TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`.
+`TaskUpdate`: любое подмножество `title, description, status (TODO|IN_PROGRESS|DONE), priority, assigneeId` — доступное подмножество зависит от роли вызывающего (см. выше); `assigneeId` может менять только `MANAGER+`/`ADMIN`, исполнитель без этой роли — нет. `assigneeId: null` снимает исполнителя, несуществующий `assigneeId` — `404`. `title`, `status`, `priority` можно не передавать, но явный `null` в них — `422 VALIDATION_ERROR`; `description: null` очищает описание.
 `TaskResponse`: `id, projectId, projectName, assigneeId, assigneeFirstName, assigneeLastName, title, description, status, priority, labels: LabelResponse[], commentsCount` — `projectName` отдаётся всегда, даже если у вызывающего нет доступа к самому проекту (например, исполнитель задачи без членства — иначе кросс-проектный список задач не смог бы показать, из какого проекта задача); `assigneeFirstName`/`assigneeLastName` — `null`, если `assigneeId` не задан; `commentsCount` — число неудалённых комментариев задачи, посчитано на уровне SQL (без отдельного запроса).
 
 ### 6.5 Comments

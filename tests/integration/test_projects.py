@@ -361,3 +361,18 @@ class TestProjectMembers:
         )
 
         assert resp.status_code == 200
+
+
+def test_patch_project_null_in_required_field_is_validation_error(client):
+    owner = register_and_login(client)
+    project_id = create_project(client, owner["token"])
+
+    for field in ("name", "status"):
+        resp = client.patch(
+            f"/api/v1/projects/{project_id}",
+            json={field: None},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 422, field
+        assert resp.json()["error"]["code"] == "VALIDATION_ERROR"

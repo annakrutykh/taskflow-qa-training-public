@@ -13,6 +13,7 @@ def test_empty_string_disables_nothing():
     assert defects.is_enabled("D-04")
     assert defects.is_enabled("D-17")
     assert defects.is_enabled("D-18")
+    assert defects.is_enabled("D-20")
 
 
 def test_parses_comma_separated_list_as_denylist():
