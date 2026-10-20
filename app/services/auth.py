@@ -6,13 +6,18 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import jwt
+import redis
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.config import settings
 from app.core.defects import defects
-from app.core.errors import EmailAlreadyExistsError, InvalidCredentialsError
+from app.core.errors import (
+    EmailAlreadyExistsError,
+    InvalidCredentialsError,
+    ServiceUnavailableError,
+)
 from app.core.redis_client import redis_client
 from app.models import User
 
@@ -107,4 +112,18 @@ def logout_user(jti: str | None, exp: int | None) -> None:
         return
 
     remaining_seconds = max(exp - int(time.time()), 1)
-    redis_client.setex(f"blacklist:{jti}", remaining_seconds, "1")
+
+    if defects.is_enabled("D-21"):
+        redis_client.setex(f"blacklist:{jti}", remaining_seconds, "1")
+        return
+
+    # D-21: по умолчанию недоступный Redis — понятный 503 SERVICE_UNAVAILABLE
+    # (отозвать токен нельзя, и клиент должен об этом узнать). При включённом
+    # дефекте RedisError не перехватывается и запрос падает 500 INTERNAL_ERROR.
+    try:
+        redis_client.setex(f"blacklist:{jti}", remaining_seconds, "1")
+    except redis.RedisError as exc:
+        logger.warning("Redis недоступен, отзыв токена при выходе невозможен")
+        raise ServiceUnavailableError(
+            "Не удалось завершить сеанс: сервис временно недоступен, повторите позже"
+        ) from exc
