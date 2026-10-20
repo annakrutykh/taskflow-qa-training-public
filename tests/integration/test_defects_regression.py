@@ -112,3 +112,19 @@ def test_d19_whitespace_only_search_returns_empty_by_default(client):
 
     assert resp.status_code == 200
     assert resp.json() == []
+
+
+def test_d20_null_in_required_task_field_is_validation_error_by_default(client):
+    owner = register_and_login(client)
+    project_id = create_project(client, owner["token"])
+    task_id = create_task(client, owner["token"], project_id)["id"]
+
+    for field in ("title", "status", "priority"):
+        resp = client.patch(
+            f"/api/v1/tasks/{task_id}",
+            json={field: None},
+            headers=auth_headers(owner["token"]),
+        )
+
+        assert resp.status_code == 422, field
+        assert resp.json()["error"]["code"] == "VALIDATION_ERROR"

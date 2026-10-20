@@ -98,6 +98,15 @@ class ProjectUpdate(BaseModel):
     description: str | None = Field(default=None, max_length=1000)
     status: ProjectStatus | None = None
 
+    @field_validator("name", "status")
+    @classmethod
+    def required_fields_must_not_be_null(cls, value):
+        """Поле можно не передавать, но явный null недопустим: в БД столбцы
+        name/status — NOT NULL (иначе запрос дошёл бы до БД и упал 500)."""
+        if value is None:
+            raise ValueError("Поле не может быть null")
+        return value
+
 
 class ProjectMemberCreate(BaseModel):
     userId: int
@@ -129,6 +138,19 @@ class TaskUpdate(BaseModel):
     status: TaskStatus | None = None
     priority: TaskPriority | None = None
     assignee_id: int | None = Field(default=None, alias="assigneeId")
+
+    @field_validator("title", "status", "priority")
+    @classmethod
+    def required_fields_must_not_be_null(cls, value):
+        """D-20: по умолчанию явный null в title/status/priority отклоняется
+        на уровне валидации запроса (422 VALIDATION_ERROR) — в БД эти
+        столбцы NOT NULL. При включённом дефекте проверка пропускается,
+        null доходит до БД, нарушает NOT NULL и запрос падает 500
+        INTERNAL_ERROR. assigneeId: null по-прежнему снимает исполнителя.
+        """
+        if not defects.is_enabled("D-20") and value is None:
+            raise ValueError("Поле не может быть null")
+        return value
 
 
 class CommentCreate(BaseModel):
