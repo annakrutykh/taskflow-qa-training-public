@@ -88,3 +88,8 @@ class MaxAdminsError(AppError):
 class TooManyRequestsError(AppError):
     status_code = 429
     code = "TOO_MANY_REQUESTS"
+
+
+class ServiceUnavailableError(AppError):
+    status_code = 503
+    code = "SERVICE_UNAVAILABLE"

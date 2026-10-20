@@ -157,6 +157,7 @@ scope soft delete — удаляются физически, каскад на `
 | `LAST_PROJECT_OWNER` | 409 | Попытка удалить/разжаловать последнего `OWNER` проекта |
 | `LAST_ADMIN` | 409 | Попытка удалить/разжаловать/деактивировать последнего активного `ADMIN` |
 | `MAX_ADMINS` | 409 | Попытка повысить пользователя до `ADMIN`, когда активных `ADMIN` уже 3 |
+| `SERVICE_UNAVAILABLE` | 503 | Временно недоступна зависимость, без которой операцию выполнить нельзя (например, Redis при `POST /auth/logout`) |
 | `TOO_MANY_REQUESTS` | 429 | Превышен лимит запросов на `/auth/login`/`/auth/register` |
 | `INTERNAL_ERROR` | 500 | Необработанное исключение |
 
@@ -170,7 +171,7 @@ scope soft delete — удаляются физически, каскад на `
 |---|---|---|---|---|
 | POST | `/auth/register` | нет | `201`, `Location: /api/v1/users/{id}` | `409 EMAIL_ALREADY_EXISTS`, `422 VALIDATION_ERROR`, `429 TOO_MANY_REQUESTS` |
 | POST | `/auth/login` | нет | `200`, `{accessToken, tokenType}` | `401 INVALID_CREDENTIALS`, `422 VALIDATION_ERROR`, `429 TOO_MANY_REQUESTS` |
-| POST | `/auth/logout` | любой авторизованный | `204` | `401` |
+| POST | `/auth/logout` | любой авторизованный | `204` | `401`, `503 SERVICE_UNAVAILABLE` |
 
 `POST /auth/register` body: `email, password (8–64, минимум одна строчная, одна заглавная буква и цифра), firstName (1–50), lastName (1–50)`.
 Новый пользователь получает роль `USER`, `isActive=true`.
@@ -180,6 +181,8 @@ scope soft delete — удаляются физически, каскад на `
 `POST /auth/logout` — отзывает текущий `accessToken` немедленно (через блэклист
 в Redis с TTL до конца исходного срока действия токена, `jti`-claim). Тело не
 требуется, токен берётся из заголовка `Authorization`.
+Если Redis недоступен, отозвать токен невозможно — `503 SERVICE_UNAVAILABLE`
+(токен остаётся действующим до конца срока; в отличие от rate limiting здесь не fail-open).
 
 #### Rate limiting
 

@@ -128,3 +128,23 @@ def test_d20_null_in_required_task_field_is_validation_error_by_default(client):
 
         assert resp.status_code == 422, field
         assert resp.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_d21_logout_with_redis_down_is_service_unavailable_by_default(
+    client, monkeypatch
+):
+    import redis
+
+    from app.services import auth as auth_service
+
+    owner = register_and_login(client)
+
+    def broken_setex(*args, **kwargs):
+        raise redis.ConnectionError("Redis недоступен")
+
+    monkeypatch.setattr(auth_service.redis_client, "setex", broken_setex)
+
+    resp = client.post("/api/v1/auth/logout", headers=auth_headers(owner["token"]))
+
+    assert resp.status_code == 503
+    assert resp.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
